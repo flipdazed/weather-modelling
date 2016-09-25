@@ -1,0 +1,8 @@
+# ignore certain files
+config.ini
+load_data.py
+conv.py
+logistic_sgd.py
+logs
+mlp.py
+search_structure.py
