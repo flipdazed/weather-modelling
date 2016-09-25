@@ -1,0 +1,10 @@
+       logs:   __main__:    59:   DEBUG : [35mHandlers added[0m
+       logs:   __main__:    74:    INFO : [32mLogger started: __main__[0m
+  load_data:   __main__:   247:    INFO : [32mTesting Load_Data ...[0m
+       logs:  Load_Data:    69:    INFO : [32mLogger started: Load_Data[0m
+  load_data:  Load_Data:    38:   DEBUG : [35mData location: /Users/alex/Documents/auckland/AucklandResearch/data/icestorm/[0m
+  load_data:  Load_Data:    46:   DEBUG : [35mObtained 5 files like 'day*'[0m
+  load_data:   __main__:   251:    INFO : [32mTest data pull ...[0m
+  load_data:  Load_Data:    60:    INFO : [32mLoading test dataset[0m
+  load_data:  Load_Data:   132:   DEBUG : [35mParsing test data[0m
+  load_data:  Load_Data:   140:   DEBUG : [35mReading from '/Users/alex/Documents/auckland/AucklandResearch/data/icestorm/day1'[0m
