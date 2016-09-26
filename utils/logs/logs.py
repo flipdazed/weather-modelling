@@ -8,6 +8,8 @@ from logging_colourer import * # created pretty colors for logger
 from logging_formatter import * # created pretty colors for logger
 from functools import wraps
 
+FILE_FORMAT = " %(module)15s: %(name)10s: %(lineno)5d: %(levelname)7s : %(msg)s"
+
 # http://stackoverflow.com/a/6307868/4013571
 def wrap_all(decorator):
     """wraps all function with the wrapper provided as an argument"""
@@ -41,7 +43,7 @@ def getHandlers(filename=None, mode='w+', file_level=logging.DEBUG, stream_level
     #   create file handler
     file_handler = logging.FileHandler(filename=filename, mode=mode)
     file_handler.setLevel(file_level)
-    file_fmt = logging.Formatter(" %(module)10s: %(name)10s: %(lineno)5d: %(levelname)7s : %(msg)s")
+    file_fmt = logging.Formatter(FILE_FORMAT)
     file_handler.setFormatter(file_fmt)
     
     if len(logger.root.handlers) > 0:
@@ -59,7 +61,12 @@ def getHandlers(filename=None, mode='w+', file_level=logging.DEBUG, stream_level
         logger.debug('Handlers added')
     pass
 
-def get_logger(name=None, self=None):
+def updateLevel(level, handler=0):
+    """Updates the output level of a given handler"""
+    logging.root.handlers[handler].setLevel(level)
+    pass
+
+def get_logger(name=None, self=None, update_stream_level=None):
     """Makes a logger based on the context"""
     # creates a logger for the test file
     
@@ -72,6 +79,9 @@ def get_logger(name=None, self=None):
         if name is None: raise ValueError('Need name defined if self is None')
         logger = logging.getLogger(name)
         logger.info('Logger started: {}'.format(name))
+    
+    if update_stream_level is not None:
+        updateLevel(update_stream_level)
     return logger
 
 # This should be left as DEBUG

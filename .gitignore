@@ -1,5 +1,4 @@
 # ignore certain files
 config.ini
 conv.py
-logistic_sgd.py
-mlp.py
+runlog.log

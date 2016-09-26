@@ -18,7 +18,9 @@ config = ConfigParser()
 config.read(u'config.ini')
 mnist_url       = config.get('Load Data', 'mnist_url')
 mnist_loc       = config.get('Load Data', 'mnist_loc')
-icestorm_loc    = config.get('Load Data', 'icestorm_loc')
+data_loc        = config.get('Load Data', 'data_loc')
+datafile_pat    = config.get('Load Data', 'datafile_pat')
+model_dir       = config.get('Load Data', 'model_dir')
 log             = config.get('Global', 'log')
 utils.logs.getHandlers(filename=log, mode='w+')
 
@@ -29,7 +31,7 @@ class Load_Data(object):
     
     The methods get_all() and get_test() are used to call the datasets
     """
-    def __init__(self, location, searchParam='day*'):
+    def __init__(self, location, search_pat=datafile_pat):
         
         # Set up logger to track progress
         utils.logs.get_logger(self=self)
@@ -39,15 +41,15 @@ class Load_Data(object):
         self.location = location
         
         # get data files as list
-        self.dataFiles = glob(location+searchParam)
+        self.dataFiles = glob(location+search_pat)
         
         # check files exits
         if self.dataFiles:
-            self.logger.debug("Obtained %d files like '%s'" % (len(self.dataFiles), searchParam))
+            self.logger.debug("Obtained %d files like '%s'" % (len(self.dataFiles), search_pat))
         else:
             self.logger.error("No data files found")
             raise ValueError("No data files found in location:\n\t%s\n\tlike: '%s'" % \
-                 (location, searchParam))
+                 (location, search_pat))
         pass
     def all(self):
         """Loads test data"""
@@ -61,7 +63,7 @@ class Load_Data(object):
         datasets = self._get(test=True)
         self.logger.info('Done')
         return datasets
-    def mnist(self, dataset='mnist.pkl.gz', static_origin=mnist_url):
+    def mnist(self, dataset=mnist_loc, static_origin=mnist_url):
         ''' Loads the MNIST dataset
         
         :type dataset: string
@@ -241,18 +243,4 @@ class Load_Data(object):
         return shared_x, T.cast(shared_y, 'int32')
 #
 if __name__ == '__main__':
-    
-    logger = utils.logs.get_logger(__name__)
-    
-    logger.info('Testing Load_Data ...')
-    
-    source = Load_Data(location=icestorm_loc)
-    
-    logger.info('Test data pull ...')
-    testData = source.test()
-    
-    # logger.info('Test All data pull ...')
-    # allData = source.all()
-    
-    logger.info('Test MNIST data pull ...')
-    mnist = source.mnist(dataset=mnist_loc)
+    pass
