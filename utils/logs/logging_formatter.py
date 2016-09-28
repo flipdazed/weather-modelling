@@ -57,7 +57,7 @@ class MyFormatter(logging.Formatter):
             self._fmt = MyFormatter.l2_fmt
         elif record.levelno == logging.L3:      # This is for the l3 messages
             self._fmt = MyFormatter.l3_fmt
-        elif record.levelno >= logging.WARNING:
+        elif record.levelno >= logging.wARNING:
             self._fmt = MyFormatter.err_fmt
         elif record.levelno >= logging.ERROR:
             self._fmt = MyFormatter.err_fmt

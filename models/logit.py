@@ -9,7 +9,7 @@ References:
 
 __docformat__ = 'restructedtext en'
 
-import numpy
+import numpy as np
 
 import theano
 import theano.tensor as T
@@ -22,15 +22,15 @@ class Logistic_Regression(object):
     points onto a set of hyperplanes, the distance to which is used to
     determine a class membership probability.
     """
-    def __init__(self, input, n_in, n_out):
+    def __init__(self, inputs, n_in, n_out):
         """ Initialize the parameters of the logistic regression
         
-        :type input: theano.tensor.TensorType
-        :param input: symbolic variable that describes the input of the
+        :type inputs: theano.tensor.TensorType
+        :param inputs: symbolic variable that describes the inputs of the
                       architecture (one minibatch)
         
         :type n_in: int
-        :param n_in: number of input units, the dimension of the space in
+        :param n_in: number of inputs units, the dimension of the space in
                      which the datapoints lie
         
         :type n_out: int
@@ -39,30 +39,30 @@ class Logistic_Regression(object):
         
         """
         
-        self.input = input
+        self.inputs = inputs
         self.n_in = n_in
         self.n_out = n_out
         
-        # initialize with 0 the weights W as a matrix of shape (n_in, n_out)
+        # initialize with 0 the weights w as a matrix of shape (n_in, n_out)
         self.w = theano.shared(
-            value=numpy.zeros((self.n_in, self.n_out),
+            value=np.zeros((self.n_in, self.n_out),
                 dtype=theano.config.floatX),
             name='w',
             borrow=True)
         
         # initialize the baises b as a vector of n_out 0s
         self.b = theano.shared(
-            value=numpy.zeros((self.n_out,),
+            value=np.zeros((self.n_out,),
                 dtype=theano.config.floatX),
             name='b',
             borrow=True)
         
         # symbolic expression for computing the matrix of class-membership
         # probabilities, where:
-        #   W is a matrix where column-k represent the separation hyper plain for class-k
-        #   x is a matrix where row-j  represents input training sample-j
+        #   w is a matrix where column-k represent the separation hyper plain for class-k
+        #   x is a matrix where row-j  represents inputs training sample-j
         #   b is a vector where element-k represent the free parameter of hyper plain-k
-        self.p_y_given_x = T.nnet.softmax(T.dot(self.input, self.w) + self.b)
+        self.p_y_given_x = T.nnet.softmax(T.dot(self.inputs, self.w) + self.b)
         
         # symbolic description of how to compute prediction as class whose
         # probability is maximal

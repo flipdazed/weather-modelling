@@ -32,7 +32,7 @@ to give
 
 ```
    logs:    74: Info  : Logger started: identifier
- <ipython-input-1-56db9d1f0dbb>:     4: Info  : test
+ <ipython-inputs-1-56db9d1f0dbb>:     4: Info  : test
 ```
 
 and a log entry in `logfile.log` as
@@ -40,7 +40,7 @@ and a log entry in `logfile.log` as
 ```
 logs:  logs.logs:    59:   DEBUG : Handlers added
 logs: identifier:    74:    INFO : Logger started: identifier
- <ipython-input-1-56db9d1f0dbb>: identifier:     4:    INFO : test
+ <ipython-inputs-1-56db9d1f0dbb>: identifier:     4:    INFO : test
 ```
 
 ## Log a Class
@@ -60,7 +60,7 @@ which displays as normal
 
 ```
        logs:    70: Info  : Logger started: identifier
- <ipython-input-8-1e343d7d8015>:     7: Info  : a logger is attached to `self` by `logs.get_logger`
+ <ipython-inputs-8-1e343d7d8015>:     7: Info  : a logger is attached to `self` by `logs.get_logger`
 ```
 
 and a log entry in `logfile.log` displays further detail as
@@ -69,7 +69,7 @@ and a log entry in `logfile.log` displays further detail as
        logs:  logs.logs:    55:   DEBUG : Handler already added
        logs:  logs.logs:    55:   DEBUG : Handler already added
        logs: identifier:    70:    INFO : Logger started: identifier
- <ipython-input-8-1e343d7d8015>: identifier:     7:    INFO : a logger is attached to `self` by `logs.get_logger`
+ <ipython-inputs-8-1e343d7d8015>: identifier:     7:    INFO : a logger is attached to `self` by `logs.get_logger`
 ```
 
 # Configuration

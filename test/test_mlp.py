@@ -1,27 +1,28 @@
 import os, sys
+
 import numpy as np
 import theano
 import theano.tensor as T
 
-import load
 import utils
 import common
-from mlp import *
+import data
+from models.mlp import *
 
-MODEL = os.path.join(load.model_dir, os.path.splitext(os.path.basename(__file__))[0]+'.pkl')
+MODEL = os.path.join(data.model_dir, os.path.splitext(os.path.basename(__file__))[0]+'.pkl')
 
 if __name__ == "__main__":
-    logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.DEBUG)
-    logger.info('Loading data ...')
-    data_loc = load.data_loc
-    source = load.Load_Data(location=data_loc)
-    
     learning_rate=0.01
     l1_reg=0.00
     L2_reg=0.0001
     n_epochs=1000
     batch_size=20
     n_hidden=500
+    
+    logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.DEBUG)
+    logger.info('Loading data ...')
+    data_loc = data.data_loc
+    source = data.Load_Data(location=data_loc)
     
     datasets = source.mnist()
     train_set_x, train_set_y = datasets[0]
@@ -45,7 +46,7 @@ if __name__ == "__main__":
     # construct the MLP class
     classifier = MLP(
         rng=rng,
-        input=x,
+        inputs=x,
         n_in=28**2,
         n_hidden=n_hidden,
         n_out=10

@@ -8,6 +8,8 @@ from logging_colourer import * # created pretty colors for logger
 from logging_formatter import * # created pretty colors for logger
 from functools import wraps
 
+from configparser import ConfigParser
+
 FILE_FORMAT = " %(module)15s: %(name)10s: %(lineno)5d: %(levelname)7s : %(msg)s"
 
 # http://stackoverflow.com/a/6307868/4013571
@@ -83,6 +85,13 @@ def get_logger(name=None, self=None, update_stream_level=None):
     if update_stream_level is not None:
         updateLevel(update_stream_level)
     return logger
+
+def startLogger(config_file=u'config.ini', config_title='Global', config_id='log'):
+    config = ConfigParser()
+    config.read(config_file)
+    log = config.get(config_title, config_id)
+    getHandlers(filename=log, mode='w+')
+    pass
 
 # This should be left as DEBUG
 # change logging level with getHandlers

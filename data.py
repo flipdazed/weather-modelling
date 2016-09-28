@@ -1,28 +1,30 @@
-import utils
-from configparser import ConfigParser
-from glob import glob
-
 import numpy as np
 import theano
 import theano.tensor as T
+from glob import glob
+from configparser import ConfigParser
 
 # This is just required by the MNIST section
 import cPickle
 import gzip
 import os
 import urllib
-# end collection
+# End MNIST section
+
+from utils import logs
+
+CONFIG_FILE = u'config.ini'
 
 # get configuration
 config = ConfigParser()
-config.read(u'config.ini')
+config.read(CONFIG_FILE)
+logs.startLogger(config_file=CONFIG_FILE)
 mnist_url       = config.get('Load Data', 'mnist_url')
 mnist_loc       = config.get('Load Data', 'mnist_loc')
 data_loc        = config.get('Load Data', 'data_loc')
 datafile_pat    = config.get('Load Data', 'datafile_pat')
-model_dir       = config.get('Load Data', 'model_dir')
-log             = config.get('Global', 'log')
-utils.logs.getHandlers(filename=log, mode='w+')
+model_dir       = config.get('Store Data', 'model_dir')
+plot_dir        = config.get('Store Data', 'plot_dir')
 
 class Load_Data(object):
     """Loading Data for Classification
@@ -34,7 +36,7 @@ class Load_Data(object):
     def __init__(self, location, search_pat=datafile_pat):
         
         # Set up logger to track progress
-        utils.logs.get_logger(self=self)
+        logs.get_logger(self=self)
         
         # set location
         self.logger.debug("Data location: %s" % location)

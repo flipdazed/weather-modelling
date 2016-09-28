@@ -15,7 +15,7 @@ def predict(model_loc, source, logger):
     
     # compile a predictor function
     predict_model = theano.function(
-        inputs=[classifier.input],
+        inputs=[classifier.inputs],
         outputs=classifier.y_pred)
     
     # We can test it on some examples from test test

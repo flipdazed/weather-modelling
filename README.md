@@ -18,4 +18,4 @@ icestorm_loc = /path/to/data/files/
 model_dir = /path/to/root/dump/models/
 ```
 
-and will be parsed by `load.py` where parameters are stored.
+and will be parsed by `py` where parameters are stored.

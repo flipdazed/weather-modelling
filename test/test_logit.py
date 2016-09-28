@@ -1,22 +1,22 @@
+import os, sys, timeit
 import numpy as np
+
 import theano
 import theano.tensor as T
-import timeit
 import dill as pickle
-import os, sys
 
-import load
+import data
 import utils
 import common
-from mlp import *
+from models.mlp import *
 
-MODEL = os.path.join(load.model_dir, os.path.splitext(os.path.basename(__file__))[0]+'.pkl')
+MODEL = os.path.join(data.model_dir, os.path.splitext(os.path.basename(__file__))[0]+'.pkl')
 
 if __name__ == "__main__":
     logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.DEBUG)
     logger.info('Loading data ...')
-    data_loc = load.data_loc
-    source = load.Load_Data(location=data_loc)
+    data_loc = data.data_loc
+    source = data.Load_Data(location=data_loc)
     
     learning_rate=0.13
     n_epochs=1000
@@ -37,14 +37,14 @@ if __name__ == "__main__":
     # allocate symbolic variables for the data
     index = T.lscalar()  # index to a [mini]batch
     
-    # generate symbolic variables for input (x and y represent a
+    # generate symbolic variables for inputs (x and y represent a
     # minibatch)
     x = T.matrix('x')  # data, presented as rasterized images
     y = T.ivector('y')  # labels, presented as 1D vector of [int] labels
     
     # construct the logistic regression class
     # Each MNIST image has size 28*28
-    classifier = Logistic_Regression(input=x, n_in=28**2, n_out=10)
+    classifier = Logistic_Regression(inputs=x, n_in=28**2, n_out=10)
     
     # the cost we minimize during training is the negative log likelihood of
     # the model in symbolic format
@@ -73,13 +73,13 @@ if __name__ == "__main__":
     )
     
     # compute the gradient of cost with respect to theta = (W,b)
-    g_W = T.grad(cost=cost, wrt=classifier.w)
+    g_w = T.grad(cost=cost, wrt=classifier.w)
     g_b = T.grad(cost=cost, wrt=classifier.b)
     
     
     # specify how to update the parameters of the model as a list of
     # (variable, update expression) pairs.
-    updates = [(classifier.w, classifier.w - learning_rate * g_W),
+    updates = [(classifier.w, classifier.w - learning_rate * g_w),
                (classifier.b, classifier.b - learning_rate * g_b)]
     
     # compiling a Theano function `train_model` that returns the cost, but in

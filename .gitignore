@@ -1,4 +1,10 @@
 # ignore certain files
-config.ini
-conv.py
-runlog.log
+*gitignore*
+*config.ini
+*cnn.py
+*runlog.log
+*dbn.py
+*rbm.py
+*test_dbn.py
+*test_rbm.py
+*misc.py
