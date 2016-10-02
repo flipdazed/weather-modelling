@@ -4,10 +4,15 @@ import numpy as np
 import theano
 import dill as pickle
 
-def predict(model_loc, source, logger):
+def predict(model_loc, source, logger, test_slice=slice(0,10)):
     """
     An example of how to load a trained model and use it
     to predict labels.
+    
+    :param model_loc: location of .pkl model
+    :param source: data source, instance of Load_Data()
+    :param logger: logger instance
+    :param slice_obj: a slice() object to index the test data
     """
     
     # load the saved model
@@ -23,10 +28,10 @@ def predict(model_loc, source, logger):
     test_set_x, test_set_y = datasets[2]
     test_set_x = test_set_x.get_value()
     
-    predicted_values = predict_model(test_set_x[:10])
+    predicted_values = predict_model(test_set_x[test_slice])
     logger.info("Predicted vs. Actual values for the first 10 examples in test set:")
     logger.info(predicted_values)
-    logger.info(test_set_y[:10].eval())
+    logger.info(test_set_y[test_slice].eval())
     pass
 
 def train(classifier, train_model, validate_model, test_model,
@@ -34,10 +39,10 @@ def train(classifier, train_model, validate_model, test_model,
     n_epochs, learning_rate,
     patience, patience_increase, improvement_threshold,
     model_loc, logger):
+    # go through this many minibatche before checking 
+    # the network on the validation set; in this case 
+    # we check every epoch
     validation_frequency = min(n_train_batches, patience // 2)
-                                  # go through this many minibatche before checking 
-                                  # the network on the validation set; in this case 
-                                  # we check every epoch
     
     best_validation_loss = np.inf
     best_i = 0
@@ -49,6 +54,8 @@ def train(classifier, train_model, validate_model, test_model,
     
     while (epoch < n_epochs) and (not done_looping):
         epoch += 1
+        
+        epoch_start_i = timeit.default_timer()
         for minibatch_index in range(n_train_batches):
             
             minibatch_avg_cost = train_model(minibatch_index)
@@ -60,8 +67,11 @@ def train(classifier, train_model, validate_model, test_model,
                 validation_losses = [validate_model(i) for i in range(n_valid_batches)]
                 this_validation_loss = np.mean(validation_losses)
                 
-                logger.debug('epoch %i, minibatch %i/%i, validation error %f %%' % (epoch,
-                 minibatch_index + 1, n_train_batches, this_validation_loss * 100.))
+                train_end_i = timeit.default_timer()
+                train_time_i = train_end_i - epoch_start_i
+                logger.debug('Epoch {}, minibatch {}/{}: Valid Err {}%; Valid Time {}m'.format(
+                    epoch, minibatch_index + 1, n_train_batches, 
+                    this_validation_loss * 100., train_time_i/60.))
                 
                 # if we got the best validation score until now
                 if this_validation_loss < best_validation_loss:
@@ -70,14 +80,15 @@ def train(classifier, train_model, validate_model, test_model,
                         patience = max(patience, i * patience_increase)
                     
                     best_validation_loss = this_validation_loss
-                    # test it on the test set
                     
+                    # test it on the test set
                     test_losses = [test_model(i) for i in range(n_test_batches)]
                     test_score = np.mean(test_losses)
-                    
-                    logger.debug(('epoch %i, batch %i/%i, '
-                        'best test err: %f %%') % (epoch, minibatch_index + 1,
-                        n_train_batches, test_score * 100.))
+                    test_end_i = timeit.default_timer()
+                    test_time_i = test_end_i - epoch_start_i
+                    logger.info('Epoch {}, Batch {}/{}: Best Test Err {}%, Test Time {}m'.format(
+                        epoch, minibatch_index + 1, n_train_batches, 
+                        test_score * 100., test_time_i/60.))
                     
             if patience <= i:
                 done_looping = True

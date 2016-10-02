@@ -95,16 +95,18 @@ if __name__ == "__main__":
         }
     )
     
-    logger.info('Training the model ...')
     # early-stopping parameters
     patience = 5000  # look as this many examples regardless
     patience_increase = 2  # wait this much longer when a new best is found
     improvement_threshold = 0.995 # a relative improvement of this much is
                                   # considered significant
+    logger.info('Training the model ...')
     common.train(classifier, train_model, validate_model, test_model,
         n_train_batches, n_valid_batches, n_test_batches,
         n_epochs, learning_rate,
         patience, patience_increase, improvement_threshold, 
         MODEL, logger)
+        
+    logger.info('Testing the model ...')
     common.predict(MODEL, source, logger)
     pass

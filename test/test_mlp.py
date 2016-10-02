@@ -119,5 +119,7 @@ if __name__ == "__main__":
         n_epochs, learning_rate,
         patience, patience_increase, improvement_threshold, 
         MODEL, logger)
+    
+    logger.info('Testing the model ...')
     common.predict(MODEL, source, logger)
     pass
