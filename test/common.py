@@ -48,7 +48,7 @@ def train(classifier, train_model, validate_model, test_model,
     done_looping = False
     
     while (epoch < n_epochs) and (not done_looping):
-        epoch = epoch + 1
+        epoch += 1
         for minibatch_index in range(n_train_batches):
             
             minibatch_avg_cost = train_model(minibatch_index)
@@ -84,8 +84,7 @@ def train(classifier, train_model, validate_model, test_model,
                 break
     
     # save the best model
-    with open(model_loc, 'wb') as f:
-        pickle.dump(classifier, f)
+    with open(model_loc, 'wb') as f: pickle.dump(classifier, f)
     
     end_time = timeit.default_timer()
     logger.info('Done')

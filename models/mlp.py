@@ -104,10 +104,10 @@ class MLP(object):
     class).
     """
     def __init__(self, rng, inputs, n_in, n_hidden, n_out):
-        """Initialize the parameters for the multilayer perceptron
+        """Initialise the parameters for the multilayer perceptron
         
         :type rng: np.random.RandomState
-        :param rng: a random number generator used to initialize weights
+        :param rng: a random number generator used to initialise weights
         
         :type inputs: theano.tensor.TensorType
         :param inputs: symbolic variable that describes the inputs of the
@@ -115,7 +115,7 @@ class MLP(object):
         
         :type n_in: int
         :param n_in: number of inputs units, the dimension of the space in
-        which the datapoints lie
+        which the data points lie
         
         :type n_hidden: int
         :param n_hidden: number of hidden units

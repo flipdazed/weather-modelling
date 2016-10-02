@@ -4,9 +4,9 @@ import numpy as np
 import theano
 import theano.tensor as T
 
+import data
 import utils
 import common
-import data
 from models.mlp import *
 
 MODEL = os.path.join(data.model_dir, os.path.splitext(os.path.basename(__file__))[0]+'.pkl')
@@ -19,10 +19,14 @@ if __name__ == "__main__":
     batch_size=20
     n_hidden=500
     
+    # early-stopping parameters
+    patience = 10000                # look as this many examples regardless
+    patience_increase = 5           # wait this much longer when a new best is found
+    improvement_threshold = 0.995   # consider this relative improvement significant
+    
     logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.DEBUG)
     logger.info('Loading data ...')
-    data_loc = data.data_loc
-    source = data.Load_Data(location=data_loc)
+    source = data.Load_Data()
     
     datasets = source.mnist()
     train_set_x, train_set_y = datasets[0]
@@ -55,7 +59,8 @@ if __name__ == "__main__":
     # the cost we minimize during training is the negative log likelihood of
     # the model plus the regularization terms (l1 and L2); cost is expressed
     # here symbolically
-    cost = (classifier.negativeLogLikelihood(y) + l1_reg*classifier.l1 + L2_reg*classifier.L2_sqr)
+    cost = (classifier.negativeLogLikelihood(y) + l1_reg*classifier.l1 +
+             L2_reg*classifier.L2_sqr)
     
     # compiling a Theano function that computes the mistakes that are made
     # by the model on a minibatch
@@ -109,12 +114,6 @@ if __name__ == "__main__":
     )
     
     logger.info('Training the model ...')
-    
-    # early-stopping parameters
-    patience = 10000  # look as this many examples regardless
-    patience_increase = 5  # wait this much longer when a new best is found
-    improvement_threshold = 0.995  # a relative improvement of this much is
-                                   # considered significant
     common.train(classifier, train_model, validate_model, test_model,
         n_train_batches, n_valid_batches, n_test_batches,
         n_epochs, learning_rate,

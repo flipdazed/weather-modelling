@@ -15,8 +15,7 @@ MODEL = os.path.join(data.model_dir, os.path.splitext(os.path.basename(__file__)
 if __name__ == "__main__":
     logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.DEBUG)
     logger.info('Loading data ...')
-    data_loc = data.data_loc
-    source = data.Load_Data(location=data_loc)
+    source = data.Load_Data()
     
     learning_rate=0.13
     n_epochs=1000

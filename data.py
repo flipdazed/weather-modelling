@@ -33,11 +33,18 @@ class Load_Data(object):
     
     The methods get_all() and get_test() are used to call the datasets
     """
-    def __init__(self, location, search_pat=datafile_pat):
+    def __init__(self, location=None, search_pat=datafile_pat):
         
         # Set up logger to track progress
         logs.get_logger(self=self)
         
+        if location:
+            self.findData(location, search_pat)
+        else:
+            self.logger.debug('MNIST Only: No data location specified')
+            self.logger.debug('... find datasets with self.findData')
+        pass
+    def findData(self, location, search_pat):
         # set location
         self.logger.debug("Data location: %s" % location)
         self.location = location
@@ -66,25 +73,15 @@ class Load_Data(object):
         self.logger.info('Done')
         return datasets
     def mnist(self, dataset=mnist_loc, static_origin=mnist_url):
-        ''' Loads the MNIST dataset
+        """ Loads the MNIST dataset
         
         :type dataset: string
         :param dataset: the path to the dataset (here MNIST)
-        '''
+        """
         self.logger.info('Loading the MNIST test dataset')
         
         # Download the MNIST dataset if it is not present
         data_dir, data_file = os.path.split(dataset)
-        # if data_dir == "" and not os.path.isfile(dataset):
-        #
-        #     # Check if dataset is in the data directory
-        #     new_path = os.path.join(
-        #         os.path.split(__file__)[0],
-        #         "..",
-        #         "data",
-        #         dataset)
-        #     if os.path.isfile(new_path) or data_file == 'mnist.pkl.gz':
-        #         dataset = new_path
         
         if (not os.path.isfile(dataset)) and data_file == 'mnist.pkl.gz':
             self.logger.debug('Downloading data from %s' % static_origin)
