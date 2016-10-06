@@ -101,7 +101,7 @@ if __name__ == "__main__":
     improvement_threshold = 0.995 # a relative improvement of this much is
                                   # considered significant
     logger.info('Training the model ...')
-    common.train(classifier, train_model, validate_model, test_model,
+    utils.training.train(classifier, train_model, validate_model, test_model,
         n_train_batches, n_valid_batches, n_test_batches,
         n_epochs, learning_rate,
         patience, patience_increase, improvement_threshold, 

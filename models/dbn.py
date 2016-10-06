@@ -1,5 +1,3 @@
-from __future__ import division
-
 import numpy as np
 import theano
 import theano.tensor as T
@@ -10,16 +8,24 @@ from models.logit import Logistic_Regression
 from models.mlp import Hidden_Layer
 from models.rbm import RBM
 
-class DBN(object):
-    """Deep Belief Network
+__docformat__ = 'restructedtext en'
+
+__doc__ = """
+This code is adapted from a Theano tutorial found at deeplearning.net
+
+References:
+    - http://deeplearning.net/tutorial/dbn.html
     
-    A deep belief network is obtained by stacking several RBMs on top of each
-    other. The hidden layer of the RBM at layer `i` becomes the inputs of the
-    RBM at layer `i+1`. The first layer RBM gets as inputs the inputs of the
-    network, and the hidden layer of the last RBM represents the output. When
-    used for classification, the DBN is treated as a MLP, by adding a logistic
-    regression layer on top.
-    """
+A deep belief network is obtained by stacking several RBMs on top of each
+other. The hidden layer of the RBM at layer `i` becomes the inputs of the
+RBM at layer `i+1`. The first layer RBM gets as inputs the inputs of the
+network, and the hidden layer of the last RBM represents the output. When
+used for classification, the DBN is treated as a MLP, by adding a logistic
+regression layer on top.
+"""
+
+class DBN(object):
+    """Deep Belief Network"""
     
     def __init__(self, np_rng, theano_rng=None, n_ins=784,hidden_layers_sizes=[500, 500], n_outs=10):
         """This class is made to support a variable number of layers.

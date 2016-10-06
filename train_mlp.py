@@ -6,29 +6,51 @@ import theano.tensor as T
 
 import data
 import utils
-import common
-from models.mlp import *
+from models.mlp import MLP, Hidden_Layer
+
+__docformat__ = 'restructedtext en'
+
+__doc__ = """
+This code trains a multi-layer perceptron (MLP) upon the weather data
+
+Data Set:
+    - 582 events
+    - 10092 features
+    - binary result of TRUE|FALSE
+
+The features are unknown preprocessed weather data and the result corresponds to an ice-storm event
+
+Notes:
+    - This MLP doesn't seem capable of learning the structure of the data
+    - Validation error remains close to 50%
+"""
 
 MODEL = os.path.join(data.model_dir, os.path.splitext(os.path.basename(__file__))[0]+'.pkl')
 
+# model parameters
+n_hidden    = 25000
+n_in        = 10092
+n_out       = 2
+
+# training parameters
+n_epochs        = 1000
+batch_size      = 10
+learning_rate   = 0.05
+l1_reg          = 0.00
+L2_reg          = 0.00
+
+# early-stopping parameters
+patience                = 100                   # look as this many examples regardless
+patience_increase       = 5                     # wait this much longer when a new best is found
+improvement_threshold   = 0.995                 # consider this relative improvement significa
+
 if __name__ == "__main__":
-    learning_rate=0.01
-    l1_reg=0.00
-    L2_reg=0.0001
-    n_epochs=1000
-    batch_size=20
-    n_hidden=500
-    
-    # early-stopping parameters
-    patience = 10000                # look as this many examples regardless
-    patience_increase = 5           # wait this much longer when a new best is found
-    improvement_threshold = 0.995   # consider this relative improvement significant
     
     logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.DEBUG)
     logger.info('Loading data ...')
-    source = data.Load_Data()
+    source = data.Load_Data(location=data.data_loc)
     
-    datasets = source.mnist()
+    datasets = source.all()
     train_set_x, train_set_y = datasets[0]
     valid_set_x, valid_set_y = datasets[1]
     test_set_x, test_set_y = datasets[2]
@@ -51,9 +73,9 @@ if __name__ == "__main__":
     classifier = MLP(
         rng=rng,
         inputs=x,
-        n_in=28**2,
+        n_in=n_in,
         n_hidden=n_hidden,
-        n_out=10
+        n_out=n_out
     )
     
     # the cost we minimize during training is the negative log likelihood of
@@ -119,7 +141,4 @@ if __name__ == "__main__":
         n_epochs, learning_rate,
         patience, patience_increase, improvement_threshold, 
         MODEL, logger)
-    
-    logger.info('Testing the model ...')
-    common.predict(MODEL, source, logger)
     pass

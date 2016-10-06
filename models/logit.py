@@ -1,18 +1,16 @@
-"""
-This code is adapted from a Theano tutorial found at deeplearning.net
-
-References:
-    - textbooks: "Pattern Recognition and Machine Learning" -
-                 Christopher M. Bishop, section 4.3.2
-    - http://deeplearning.net/tutorial/logreg.html
-"""
-
-__docformat__ = 'restructedtext en'
-
 import numpy as np
 
 import theano
 import theano.tensor as T
+
+__docformat__ = 'restructedtext en'
+
+__doc__ = """
+This code is adapted from a Theano tutorial found at deeplearning.net
+
+References:
+    - http://deeplearning.net/tutorial/logreg.html
+"""
 
 class Logistic_Regression(object):
     """Multi-class Logistic Regression Class

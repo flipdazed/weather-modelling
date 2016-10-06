@@ -1,4 +1,13 @@
-"""
+import numpy as np
+
+import theano
+import theano.tensor as T
+
+from models.logit import Logistic_Regression
+
+__docformat__ = 'restructedtext en'
+
+__doc__ = """
 This code is adapted from a Theano tutorial found at deeplearning.net
 
 References:
@@ -6,15 +15,6 @@ References:
                  Christopher M. Bishop, section 4.3.2
     - http://deeplearning.net/tutorial/mlp.html
 """
-
-__docformat__ = 'restructedtext en'
-
-import numpy as np
-
-import theano
-import theano.tensor as T
-
-from models.logit import Logistic_Regression
 
 class Hidden_Layer(object):
     def __init__(self, rng, inputs, n_in, n_out, w=None, b=None,activation=T.tanh):

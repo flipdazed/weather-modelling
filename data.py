@@ -38,7 +38,7 @@ class Load_Data(object):
         # Set up logger to track progress
         logs.get_logger(self=self)
         
-        if location:
+        if location is not None:
             self.findData(location, search_pat)
         else:
             self.logger.debug('MNIST Only: No data location specified')
@@ -54,11 +54,12 @@ class Load_Data(object):
         
         # check files exits
         if self.dataFiles:
-            self.logger.debug("Obtained %d files like '%s'" % (len(self.dataFiles), search_pat))
+            self.logger.debug("Obtained {:0d} files like '{}'".format(
+                len(self.dataFiles), search_pat))
         else:
             self.logger.error("No data files found")
-            raise ValueError("No data files found in location:\n\t%s\n\tlike: '%s'" % \
-                 (location, search_pat))
+            raise ValueError("No data files found in location:"
+                "\n\t{}\n\tlike: '{}'".format(location, search_pat))
         pass
     def all(self):
         """Loads test data"""
@@ -99,14 +100,18 @@ class Load_Data(object):
         valid_set_x, valid_set_y = self._shared_dataset(valid_set)
         train_set_x, train_set_y = self._shared_dataset(train_set)
         
-        datasets = [(train_set_x, train_set_y), (valid_set_x, valid_set_y),
-                (test_set_x, test_set_y)]
+        datasets = [    
+            (train_set_x, train_set_y),
+            (valid_set_x, valid_set_y),
+            (test_set_x, test_set_y)
+        ]
         
         self.logger.info('Done')
         return datasets
     def _get(self, test):
         """
-        Loads data, randomly partitions (train, valid, test) & splits X,Y variables
+        Loads data, randomly partitions (train, valid, test) 
+        & splits X,Y variables
         
         Returns a list of datasets which contains:
             [0]: Train (x,y)
@@ -170,7 +175,8 @@ class Load_Data(object):
             partition1, partition2, partition3 = returnedArray
         """
         
-        self.logger.debug('Randomly partitioning data to list of [Train, Valid, Test]')
+        self.logger.debug('Randomly partitioning data to list of '
+            '[Train, Valid, Test]')
         
         # assumes that True events are 1
         # uses a count method on data[]
@@ -194,7 +200,10 @@ class Load_Data(object):
             # integer divison of dataset by n
             intSeg = size // n
             
-            gen = zip(range(0, size, intSeg),range(intSeg, size, intSeg)[:-1]+[size])
+            gen = zip(
+                range(0, size, intSeg),
+                range(intSeg, size, intSeg)[:-1]+[size]
+            )
             
             # splits data into three equal segments
             partitions = []
@@ -207,7 +216,9 @@ class Load_Data(object):
         # Re-combine the data along axis=0
         # resulting in datasets containg n partitions
         # with ~equal ratios of storm:noStorm
-        partitionsCombined = [np.concatenate([d1,d2], axis=0) for d1,d2 in zip(*datasets)]
+        partitionsCombined = [
+            np.concatenate([d1,d2], axis=0) for d1,d2 in zip(*datasets)
+        ]
         
         # note: doesn't really matter which order:
         # test, valid, train are pulled from datasets
@@ -224,12 +235,14 @@ class Load_Data(object):
         """
         data_x, data_y = data_xy
         data_y = data_y.reshape(data_y.shape[0])
-        shared_x = theano.shared(np.asarray(data_x,
-                                               dtype=theano.config.floatX),
-                                 borrow=borrow)
-        shared_y = theano.shared(np.asarray(data_y,
-                                               dtype=theano.config.floatX),
-                                 borrow=borrow)
+        shared_x = theano.shared(
+            np.asarray(data_x, dtype=theano.config.floatX),
+            borrow=borrow
+        )
+        shared_y = theano.shared(
+            np.asarray(data_y, dtype=theano.config.floatX),
+            borrow=borrow
+        )
         self.logger.debug('X shape: %s' % str(data_x.shape))
         self.logger.debug('Y shape: %s' % str(data_y.shape))
         # When storing data on the GPU it has to be stored as floats

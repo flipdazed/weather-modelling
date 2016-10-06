@@ -1,10 +1,11 @@
 import numpy as np
 
-__doc__ = """ This file contains different utility functions that are not connected
+__doc__ = """ 
+This file contains different utility functions that are not connected
 in anyway to the networks presented in the tutorials, but rather help in
 processing the outputs into a more understandable way.
 
-For example ``tileRasterImages`` helps in generating a easy to grasp
+For example `tileRasterImages` helps in generating a easy to grasp
 image from a set of samples or weights.
 """
 

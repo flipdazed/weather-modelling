@@ -101,7 +101,7 @@ def trainModel(train_set_x, n_hidden, learning_rate, training_epochs, batch_size
             plotting_start = timeit.default_timer()
         
             image = Image.fromarray( # Construct image from the weight matrix
-                utils.misc.tileRasterImages(
+                utils.visualise.tileRasterImages(
                     x=rbm_model.w.get_value(borrow=True).T,
                     img_shape=(28, 28),
                     tile_shape=(10, 10),
@@ -176,7 +176,7 @@ def sampleModel(rbm_model, test_set_x,  n_chains, n_samples, rng, save_loc, logg
         # because successive samples in the chain are too correlated
         vis_mf, vis_sample = sample_fn()
         logger.debug('plotting sample %d' % idx)
-        image_data[29 * idx:29 * idx + 28, :] = utils.misc.tileRasterImages(
+        image_data[29 * idx:29 * idx + 28, :] = utils.visualise.tileRasterImages(
             x=vis_mf,
             img_shape=(28, 28),
             tile_shape=(1, n_chains),

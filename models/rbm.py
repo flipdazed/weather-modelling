@@ -6,13 +6,19 @@ from theano.tensor.shared_randomstreams import RandomStreams
 import utils
 from models.logit import Logistic_Regression
 
-__doc__ = """This tutorial introduces restricted boltzmann machines (RBM) using Theano.
+__docformat__ = 'restructedtext en'
+
+__doc__ = """
+This code is adapted from a Theano tutorial found at deeplearning.net
+
+References:
+    - http://deeplearning.net/tutorial/rbm.html
+
 Boltzmann Machines (BMs) are a particular form of energy-based model which
 contain hidden variables. Restricted Boltzmann Machines further restrict BMs
 to those without visible-visible and hidden-hidden connections.
 """
 
-# start-snippet-1
 class RBM(object):
     """Restricted Boltzmann Machine (RBM)  """
     def __init__(self, inputs=None, n_visible=784, n_hidden=500, w=None, hbias=None, vbias=None, np_rng=None, theano_rng=None):
