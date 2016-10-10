@@ -2,7 +2,7 @@ from load import *
 
 #
 if __name__ == '__main__':
-    logger = logs.get_logger(__name__, update_stream_level=logs.logging.DEBUG)
+    logger = logs.get_logger(__name__, update_stream_level=logs.logging.INFO)
     
     logger.info('Testing Load_Data ...')
     

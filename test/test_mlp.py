@@ -28,7 +28,7 @@ if __name__ == "__main__":
     patience_increase = 5           # wait this much longer when a new best is found
     improvement_threshold = 0.995   # consider this relative improvement significant
     
-    logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.DEBUG)
+    logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.INFO)
     logger.info('Loading data ...')
     source = data.Load_Data()
     

@@ -30,7 +30,7 @@ __doc__ =     """
     tested here.
     """
 
-logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.DEBUG)
+logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.INFO)
 MODEL = os.path.join(data.model_dir, os.path.splitext(os.path.basename(__file__))[0]+'.pkl')
 
 def mkdir(d, logger):

@@ -59,8 +59,11 @@ if __name__ == "__main__":
     w_in            = 28
     nkerns          = [20, 50]
     
+    ## the convolutional filter dimensions
     filter_shape_h  = [5, 5]
     filter_shape_w  = [5, 5]
+    
+    ## the max-pooling dimensions
     poolsize_h      = [2, 2]
     poolsize_w      = [2, 2]
     

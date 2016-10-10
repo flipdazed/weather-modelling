@@ -14,7 +14,7 @@ from models.mlp import *
 MODEL = os.path.join(data.model_dir, os.path.splitext(os.path.basename(__file__))[0]+'.pkl')
 
 if __name__ == "__main__":
-    logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.DEBUG)
+    logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.INFO)
     logger.info('Loading data ...')
     source = data.Load_Data()
     

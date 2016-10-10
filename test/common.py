@@ -1,5 +1,5 @@
 import theano
-
+import dill as pickle
 __docformat__ = 'restructedtext en'
 
 __doc__ = """

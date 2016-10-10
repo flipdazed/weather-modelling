@@ -38,7 +38,7 @@ if __name__ == '__main__':
     training_epochs=1000
     batch_size=10
     
-    logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.DEBUG)
+    logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.INFO)
     logger.info('Loading data ...')
     source = data.Load_Data()
     

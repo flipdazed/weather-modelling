@@ -1,5 +1,6 @@
 # always ignore these files
 *gitignore*
+*docs/*
 *config.ini
 *runlog.log
 *rbm_plots*
