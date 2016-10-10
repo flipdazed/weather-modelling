@@ -95,7 +95,7 @@ class DBN(object):
                                         inputs=layer_inputs,
                                         n_in=inputs_size,
                                         n_out=hidden_layers_sizes[i],
-                                        activation=T.nnet.sigmoid)
+                                        activation=T.nnet.ultra_fast_sigmoid)
             
             # add the layer to our list of layers
             self.sigmoid_layers.append(sigmoid_layer)

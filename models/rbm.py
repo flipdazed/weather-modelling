@@ -113,7 +113,7 @@ class RBM(object):
         reconstruction cost function)
         """
         pre_sigmoid_activation = T.dot(vis, self.w) + self.hbias
-        return [pre_sigmoid_activation, T.nnet.sigmoid(pre_sigmoid_activation)]
+        return [pre_sigmoid_activation, T.nnet.ultra_fast_sigmoid(pre_sigmoid_activation)]
     def sampleHgivenV(self, v0_sample):
         """ This function infers state of hidden units given visible units """
         # compute the activation of the hidden units given a sample of
@@ -139,7 +139,7 @@ class RBM(object):
         
         """
         pre_sigmoid_activation = T.dot(hid, self.w.T) + self.vbias
-        return [pre_sigmoid_activation, T.nnet.sigmoid(pre_sigmoid_activation)]
+        return [pre_sigmoid_activation, T.nnet.ultra_fast_sigmoid(pre_sigmoid_activation)]
     def sampleVgivenH(self, h0_sample):
         """ This function infers state of visible units given hidden units """
         # compute the activation of the visible given the hidden sample
@@ -264,7 +264,7 @@ class RBM(object):
         fe_xi_flip = self.freeEnergy(xi_flip)
         
         # equivalent to e^(-FE(x_i)) / (e^(-FE(x_i)) + e^(-FE(x_{\i})))
-        cost = T.mean(self.n_visible * T.log(T.nnet.sigmoid(fe_xi_flip - fe_xi)))
+        cost = T.mean(self.n_visible * T.log(T.nnet.ultra_fast_sigmoid(fe_xi_flip - fe_xi)))
         
         # increment bit_i_idx % number as part of updates
         updates[bit_i_idx] = (bit_i_idx + 1) % self.n_visible
@@ -301,8 +301,9 @@ class RBM(object):
         
         cross_entropy = T.mean(
             T.sum(
-                self.inputs * T.log(T.nnet.sigmoid(pre_sigmoid_nv)) +
-                (1 - self.inputs) * T.log(1 - T.nnet.sigmoid(pre_sigmoid_nv)),
+                self.inputs * T.log(T.nnet.ultra_fast_sigmoid(pre_sigmoid_nv)) +
+                (1 - self.inputs) * T.log(1 - 
+                    T.nnet.ultra_fast_sigmoid(pre_sigmoid_nv)),
                 axis=1
             )
         )
