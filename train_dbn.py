@@ -1,3 +1,4 @@
+import caffeine
 import os, timeit
 import numpy as np
 

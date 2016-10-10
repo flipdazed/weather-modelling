@@ -10,9 +10,15 @@ Code should always be run from the root directory for example
 
 running with `python` may not pick up the directory structure correctly on some distributions like `Ubuntu` but `ipython` works across the board.
 
+## Avoiding System Sleeping
+All scripts contain [`import caffeine`](https://pypi.python.org/pypi/caffeine/0.2) which prevents the system from going into sleep during runtime.
+
 # Structure
 
+ - `train_[MODEL].py` : trains `MODEL` on the weather data
+ - `predict.py` : make a prediction from data by loading a trained model
  - `models` : building blocks to build the models
+ - `test` : contains test routines for each model in `models` using MNIST
  - `utils` : non-core functions unrelated to ML such as `logging`
  - `dump` : stored data such as plots in `dump/plots/` and trained models in `dump/models`
  - `runlog.log` : will appear in the root directory. View with `cat runlog.log` for colour support

@@ -1,6 +1,8 @@
-# ignore certain files
+# always ignore these files
 *gitignore*
 *config.ini
-*cnn.py
 *runlog.log
 *rbm_plots*
+
+# ignore files that aren't ready
+*cnn.py

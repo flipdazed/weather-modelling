@@ -1,9 +1,10 @@
 import os, sys, timeit
-import numpy as np
 
+import numpy as np
 import theano
 import theano.tensor as T
 import dill as pickle
+import caffeine
 
 import data
 import utils

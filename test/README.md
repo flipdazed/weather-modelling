@@ -7,3 +7,6 @@ Tests are based on examples at [`DeepLearning.net`](http://deeplearning.net/tuto
 
 # Running Tests
 Run tests from the parent (root) directory as described in `../README.md`
+
+## Avoiding System Sleeping
+All test scripts contain [`import caffeine`](https://pypi.python.org/pypi/caffeine/0.2) which prevents the system from going into sleep during runtime.

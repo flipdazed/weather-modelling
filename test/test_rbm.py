@@ -1,11 +1,12 @@
 import os, timeit
-import numpy as np
 
+import numpy as np
 import dill as pickle    
 try: import PIL.Image as Image
 except ImportError: import Image
 import theano
 import theano.tensor as T
+import caffeine
 
 import data
 import utils
@@ -25,7 +26,8 @@ __doc__ =     """
     :param n_samples: number of samples to plot for each chain
     
     The trained RBM can be used for sampling by sharing weights with an MLP + logit
-    output layer. This structure contained as a subset of the dbn module and not tested here.
+    output layer. This structure contained as a subset of the dbn module and not 
+    tested here.
     """
 
 logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.DEBUG)
@@ -88,7 +90,8 @@ def trainModel(train_set_x, n_hidden, learning_rate, training_epochs, batch_size
     for epoch in range(training_epochs):
         # go through the training set
         epoch_start = timeit.default_timer()
-        mean_cost = [train_model(batch_index) for batch_index in range(n_train_batches)]
+        mean_cost = [train_model(batch_index) 
+            for batch_index in range(n_train_batches)]
         epoch_end = timeit.default_timer()
         epoch_time_i = epoch_end - epoch_start
         epoch_time += epoch_time_i
@@ -217,6 +220,7 @@ if __name__ == "__main__":
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
     
+    logger.info('Building the model ...')
     # allocate symbolic variables for the data
     index = T.lscalar()     # index to a [mini]batch
     x = T.matrix('x')       # the data is presented as rasterized images

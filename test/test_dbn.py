@@ -1,7 +1,7 @@
-from __future__ import division
-
 import os, timeit
+
 import numpy as np
+import caffeine
 
 import data
 import common

@@ -33,7 +33,8 @@ def train(classifier, train_model, validate_model, test_model,
             
             if (i+1) % validation_frequency == 0:
                 # compute zero-one loss on validation set
-                validation_losses = [validate_model(i) for i in range(n_valid_batches)]
+                validation_losses = [validate_model(i) 
+                    for i in range(n_valid_batches)]
                 this_validation_loss = np.mean(validation_losses)
                 
                 train_end_i = timeit.default_timer()
@@ -46,7 +47,8 @@ def train(classifier, train_model, validate_model, test_model,
                 # if we got the best validation score until now
                 if this_validation_loss < best_validation_loss:
                     #improve patience if loss improvement is good enough
-                    if this_validation_loss < best_validation_loss*improvement_threshold:
+                    if (this_validation_loss
+                         < best_validation_loss*improvement_threshold):
                         patience = max(patience, i * patience_increase)
                     
                     best_validation_loss = this_validation_loss
