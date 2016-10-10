@@ -18,7 +18,10 @@ if __name__ == "__main__":
     L2_reg=0.0001
     n_epochs=1000
     batch_size=20
+    
+    n_in = 28*28
     n_hidden=500
+    n_out=10
     
     # early-stopping parameters
     patience = 10000                # look as this many examples regardless
@@ -52,9 +55,9 @@ if __name__ == "__main__":
     classifier = MLP(
         rng=rng,
         inputs=x,
-        n_in=28**2,
+        n_in=n_in,
         n_hidden=n_hidden,
-        n_out=10
+        n_out=n_out
     )
     
     # the cost we minimize during training is the negative log likelihood of
