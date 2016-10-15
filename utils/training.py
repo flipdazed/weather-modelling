@@ -1,13 +1,23 @@
 import os, sys, timeit
-import numpy as np
 
+import numpy as np
 import dill as pickle
+import matplotlib.pyplot as plt
+
+import utils
+try: import PIL.Image as Image
+except ImportError: import Image
 
 def train(classifier, train_model, validate_model, test_model,
     n_train_batches, n_valid_batches, n_test_batches,
     n_epochs, learning_rate,
     patience, patience_increase, improvement_threshold,
-    model_loc, logger):
+    model_loc, logger, **kwargs):
+    """
+    
+    :type visualise: dict
+    :param visualise: dictionary of kwargs to pass to `utils.visualise.tileRasterImages`
+    """
     # go through this many minibatche before checking 
     # the network on the validation set; in this case 
     # we check every epoch
@@ -20,6 +30,19 @@ def train(classifier, train_model, validate_model, test_model,
     
     epoch = 0
     done_looping = False
+    
+    # determine if visualisation is 
+    # carried out at each minibatch
+    if 'visualise' in kwargs:
+        logger.debug('Visualisation is ON')
+        visualise = True
+        visulisations = kwargs['visualise']
+        
+        for visualise_params in visulisations:
+            img_arr = utils.visualise.tileRasterImages(**visualise_params)
+            image = Image.fromarray(img_arr)
+            image.save(visualise_params['save_loc'] + '_at_mb_{:04d}.png'.format(epoch))
+    else: visualise = False
     
     while (epoch < n_epochs) and (not done_looping):
         epoch += 1
@@ -63,7 +86,21 @@ def train(classifier, train_model, validate_model, test_model,
                         'Test Time {:.2f} mins'.format(
                         epoch, minibatch_index + 1, n_train_batches, 
                         test_score * 100., test_time_i/60.))
+                
+            # create a plot for each validation_frequency
+            if visualise:
+                for vp in visulisations:
                     
+                    # determine how often images are sampled
+                    # default to the validation frequency
+                    if 'visualise_frequency' in vp: freq = vp['visualise_frequency']
+                    else: freq = validation_frequency
+                    
+                    if (i+1) % freq == 0:
+                        img_arr = utils.visualise.tileRasterImages(**vp)
+                        image = Image.fromarray(img_arr)
+                        image.save(vp['save_loc'] + '_at_mb_{:04d}.png'.format(epoch))
+            
             if patience <= i:
                 logger.info('Lost patience after {:3d} examples'.format(i))
                 done_looping = True

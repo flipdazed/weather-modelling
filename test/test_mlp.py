@@ -20,7 +20,7 @@ if __name__ == "__main__":
     batch_size=20
     
     n_in = 28*28
-    n_hidden=500
+    n_hidden=625
     n_out=10
     
     # early-stopping parameters
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     patience_increase = 5           # wait this much longer when a new best is found
     improvement_threshold = 0.995   # consider this relative improvement significant
     
-    logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.INFO)
+    logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.DEBUG)
     logger.info('Loading data ...')
     source = data.Load_Data()
     
@@ -118,11 +118,27 @@ if __name__ == "__main__":
     )
     
     logger.info('Training the model ...')
+    visualisations = [
+        {
+            'x':classifier.hiddenLayer.w.get_value(borrow=True).T,
+            'img_shape':(28, 28),
+            'tile_shape':(25, 25),
+            'tile_spacing':(1, 1),
+            'save_loc':'dump/plots/mlp_plots/filters_inputLayer'
+        },
+        {
+            'x':classifier.logRegressionLayer.w.get_value(borrow=True).T,
+            'img_shape':(25, 25),
+            'tile_shape':(1, 10),
+            'tile_spacing':(1, 1),
+            'save_loc':'dump/plots/mlp_plots/filters_logitLayer'
+        }
+    ]
     utils.training.train(classifier, train_model, validate_model, test_model,
         n_train_batches, n_valid_batches, n_test_batches,
         n_epochs, learning_rate,
         patience, patience_increase, improvement_threshold, 
-        MODEL, logger)
+        MODEL, logger, visualise=visualisations)
     
     logger.info('Testing the model ...')
     common.predict(MODEL, source, logger)

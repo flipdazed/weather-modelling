@@ -29,14 +29,14 @@ Notes:
 MODEL = os.path.join(data.model_dir, os.path.splitext(os.path.basename(__file__))[0]+'.pkl')
 
 # model parameters
-n_hidden    = 25000
+n_hidden    = 10000
 n_in        = 10092
 n_out       = 2
 
 # training parameters
 n_epochs        = 1000
 batch_size      = 10
-learning_rate   = 0.05
+learning_rate   = 0.1
 l1_reg          = 0.00
 L2_reg          = 0.00
 
@@ -137,9 +137,26 @@ if __name__ == "__main__":
     )
     
     logger.info('Training the model ...')
+    visualisations = [
+        {
+            'x':classifier.hiddenLayer.w.get_value(borrow=True).T,
+            'img_shape':(29*2, 29*2*3),
+            'tile_shape':(36, 12),
+            'tile_spacing':(1, 1),
+            'save_loc':'dump/plots/mlp_plots/filters_inputLayer'
+        },
+        {
+            'x':classifier.logRegressionLayer.w.get_value(borrow=True).T,
+            'img_shape':(100, 100),
+            'tile_shape':(1, 2),
+            'tile_spacing':(1, 1),
+            'save_loc':'dump/plots/mlp_plots/filters_logitLayer'
+        }
+    ]
+    
     utils.training.train(classifier, train_model, validate_model, test_model,
         n_train_batches, n_valid_batches, n_test_batches,
         n_epochs, learning_rate,
         patience, patience_increase, improvement_threshold, 
-        MODEL, logger)
+        MODEL, logger, visualise=visualisations)
     pass
