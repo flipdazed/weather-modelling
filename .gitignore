@@ -3,7 +3,7 @@
 *docs*
 *config.ini
 *runlog.log
-*rbm_plots*
-*mlp_plots*
 
 # ignore files that aren't ready
+*data*
+*plots*

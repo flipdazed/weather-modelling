@@ -36,20 +36,20 @@ n_out       = 2
 # training parameters
 n_epochs        = 1000
 batch_size      = 10
-learning_rate   = 0.1
+learning_rate   = 0.01
 l1_reg          = 0.00
 L2_reg          = 0.00
 
 # early-stopping parameters
 patience                = 100                   # look as this many examples regardless
-patience_increase       = 5                     # wait this much longer when a new best is found
+patience_increase       = 2                     # wait this much longer when a new best is found
 improvement_threshold   = 0.995                 # consider this relative improvement significa
 
 if __name__ == "__main__":
     
     logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.DEBUG)
     logger.info('Loading data ...')
-    source = data.Load_Data(location=data.data_loc)
+    source = data.Load_Data(location=data.data_loc, search_pat='day1')
     
     datasets = source.all()
     train_set_x, train_set_y = datasets[0]
@@ -137,26 +137,77 @@ if __name__ == "__main__":
     )
     
     logger.info('Training the model ...')
-    visualisations = [
+    visualise_weights = [
         {
             'x':classifier.hiddenLayer.w.get_value(borrow=True).T,
             'img_shape':(29*2, 29*2*3),
             'tile_shape':(36, 12),
             'tile_spacing':(1, 1),
-            'save_loc':'dump/plots/mlp_plots/filters_inputLayer'
+            'save_loc':'dump/plots/mlp_plots/' 
+                + os.path.basename(__file__).split('.')[0]
+                + '_inputLayer'
+                + '_filters'
         },
         {
             'x':classifier.logRegressionLayer.w.get_value(borrow=True).T,
             'img_shape':(100, 100),
             'tile_shape':(1, 2),
             'tile_spacing':(1, 1),
-            'save_loc':'dump/plots/mlp_plots/filters_logitLayer'
+            'save_loc':'dump/plots/mlp_plots/' 
+                + os.path.basename(__file__).split('.')[0]
+                + '_logitLayer'
+                + '_weights'
         }
     ]
     
+    visualise_cost = {
+        'frequency':1,
+        'save_loc':'dump/data/mlp_data/'
+        + os.path.basename(__file__).split('.')[0]
+        + '_cost'
+    }
+    
+    visualise_params = [
+        {
+            'frequency':1,
+            'param':classifier.hiddenLayer.w.get_value(borrow=True).ravel(),
+            'save_loc':'dump/data/mlp_data/' 
+                + os.path.basename(__file__).split('.')[0]
+                + '_hiddenLayer'
+                + '_weights'
+        },
+        {
+            'frequency':1,
+            'param':classifier.hiddenLayer.b.get_value(borrow=True).ravel(),
+            'save_loc':'dump/data/mlp_data/' 
+                + os.path.basename(__file__).split('.')[0]
+                + '_hiddenLayer'
+                + '_bias'
+        },
+        {
+            'frequency':1,
+            'param':classifier.logRegressionLayer.w.get_value(borrow=True).ravel(),
+            'save_loc':'dump/data/mlp_data/' 
+                + os.path.basename(__file__).split('.')[0]
+                + '_logitLayer'
+                + '_weights'
+        },
+        {
+            'frequency':1,
+            'param':classifier.logRegressionLayer.b.get_value(borrow=True).ravel(),
+            'save_loc':'dump/data/mlp_data/' 
+                + os.path.basename(__file__).split('.')[0]
+                + '_logitLayer'
+                + '_bias'
+        }
+    ]
     utils.training.train(classifier, train_model, validate_model, test_model,
         n_train_batches, n_valid_batches, n_test_batches,
         n_epochs, learning_rate,
         patience, patience_increase, improvement_threshold, 
-        MODEL, logger, visualise=visualisations)
+        MODEL, logger, 
+        visualise_weights=visualise_weights, 
+        visualise_cost=visualise_cost,
+        visualise_params=visualise_params
+        )
     pass
