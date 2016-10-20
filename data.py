@@ -25,6 +25,7 @@ data_loc        = config.get('Load Data', 'data_loc')
 datafile_pat    = config.get('Load Data', 'datafile_pat')
 model_dir       = config.get('Store Data', 'model_dir')
 plot_dir        = config.get('Store Data', 'plot_dir')
+data_dir        = config.get('Store Data', 'data_dir')
 
 class Load_Data(object):
     """Loading Data for Classification

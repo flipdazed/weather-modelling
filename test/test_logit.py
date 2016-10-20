@@ -11,7 +11,10 @@ import utils
 import common
 from models.mlp import *
 
-MODEL = os.path.join(data.model_dir, os.path.splitext(os.path.basename(__file__))[0]+'.pkl')
+# Save locations
+## built model
+MODEL = data.model_dir
+MODEL_ID = os.path.splitext(os.path.basename(__file__))[0]
 
 if __name__ == "__main__":
     logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.INFO)
@@ -106,7 +109,7 @@ if __name__ == "__main__":
         n_train_batches, n_valid_batches, n_test_batches,
         n_epochs, learning_rate,
         patience, patience_increase, improvement_threshold, 
-        MODEL, logger)
+        MODEL, MODEL_ID, logger)
         
     logger.info('Testing the model ...')
     common.predict(MODEL, source, logger)

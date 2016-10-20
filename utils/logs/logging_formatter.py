@@ -30,12 +30,13 @@ class MyFormatter(logging.Formatter):
     # these lines seem a bit awkward but I don't know 
     # enought python to change them!
     # exmpl_fmt = "WARN:  %(module)s: %(name)s: %(lineno)d: %(msg)s"
-    err_fmt     = " %(module)10s: %(lineno)5d: Error : %(msg)s"
     dbg_fmt     = " %(module)10s: %(lineno)5d: Debug : %(msg)s"
-    info_fmt    = " %(module)10s: %(lineno)5d: Info  : %(msg)s"
     l1_fmt      = " %(module)10s: %(lineno)5d: L1    : %(msg)s"
     l2_fmt      = " %(module)10s: %(lineno)5d: L2    : %(msg)s"
     l3_fmt      = " %(module)10s: %(lineno)5d: L3    : %(msg)s"
+    info_fmt    = " %(module)10s: %(lineno)5d: Info  : %(msg)s"
+    wrn_fmt     = " %(module)10s: %(lineno)5d: Warn  : %(msg)s"
+    err_fmt     = " %(module)10s: %(lineno)5d: Error : %(msg)s"
     
     def __init__(self, fmt="%(levelno)s: %(msg)s"):
         logging.Formatter.__init__(self, fmt)
@@ -57,8 +58,8 @@ class MyFormatter(logging.Formatter):
             self._fmt = MyFormatter.l2_fmt
         elif record.levelno == logging.L3:      # This is for the l3 messages
             self._fmt = MyFormatter.l3_fmt
-        elif record.levelno >= logging.wARNING:
-            self._fmt = MyFormatter.err_fmt
+        elif record.levelno >= logging.WARNING:
+            self._fmt = MyFormatter.wrn_fmt
         elif record.levelno >= logging.ERROR:
             self._fmt = MyFormatter.err_fmt
         

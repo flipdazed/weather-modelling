@@ -19,7 +19,10 @@ Data Set:
 The features are unknown preprocessed weather data and the result corresponds to an ice-storm event
 """
 
-MODEL = os.path.join(data.model_dir, os.path.splitext(os.path.basename(__file__))[0]+'.pkl')
+# Save locations
+## built model
+MODEL = data.model_dir
+MODEL_ID = os.path.splitext(os.path.basename(__file__))[0]
 
 # network parameters
 n_ins               = 10092
@@ -102,9 +105,9 @@ if __name__ == '__main__':
     )
     
     logger.debug('training')
-    utils.training.train(dbn, train_model, validate_model, test_model,
+    utils.training.train(dbn, train_model, validate_model,
         n_train_batches, n_valid_batches, n_test_batches,
         training_epochs, finetune_lr,
         patience, patience_increase, improvement_threshold, 
-        MODEL, logger)
+        MODEL, MODEL_ID, logger)
     pass

@@ -147,7 +147,7 @@ class MLP(object):
         
         # The logistic regression layer gets as inputs the hidden units
         # of the hidden layer
-        self.logRegressionLayer = Logistic_Regression(
+        self.logitLayer = Logistic_Regression(
             inputs=self.hiddenLayer.output,
             n_in=n_hidden,
             n_out=n_out
@@ -157,30 +157,30 @@ class MLP(object):
         # be small
         self.l1 = (
             abs(self.hiddenLayer.w).sum()
-            + abs(self.logRegressionLayer.w).sum()
+            + abs(self.logitLayer.w).sum()
         )
         
         # square of L2 norm ; one regularization option is to enforce
         # square of L2 norm to be small
         self.L2_sqr = (
             (self.hiddenLayer.w ** 2).sum()
-            + (self.logRegressionLayer.w ** 2).sum()
+            + (self.logitLayer.w ** 2).sum()
         )
         
         # negative log likelihood of the MLP is given by the negative
         # log likelihood of the output of the model, computed in the
         # logistic regression layer
         self.negativeLogLikelihood = (
-            self.logRegressionLayer.negativeLogLikelihood
+            self.logitLayer.negativeLogLikelihood
         )
         # same holds for the function computing the number of errors
-        self.errors = self.logRegressionLayer.errors
+        self.errors = self.logitLayer.errors
         
         # get prediction from logistic sgd
-        self.y_pred = self.logRegressionLayer.y_pred
-        self.p_y_given_x = self.logRegressionLayer.p_y_given_x
+        self.y_pred = self.logitLayer.y_pred
+        self.p_y_given_x = self.logitLayer.p_y_given_x
         
         # the parameters of the model are the parameters of the two layer it is
         # made out of
-        self.params = self.hiddenLayer.params + self.logRegressionLayer.params
+        self.params = self.hiddenLayer.params + self.logitLayer.params
         pass

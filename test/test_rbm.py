@@ -31,7 +31,11 @@ __doc__ =     """
     """
 
 logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.INFO)
-MODEL = os.path.join(data.model_dir, os.path.splitext(os.path.basename(__file__))[0]+'.pkl')
+
+# Save locations
+## built model
+MODEL = data.model_dir
+MODEL_ID = os.path.splitext(os.path.basename(__file__))[0]
 
 def mkdir(d, logger):
     """Changes directory to location and creates location if not in existence
@@ -43,8 +47,14 @@ def mkdir(d, logger):
         logger.debug('creating directory: {}'.format(d))
         os.makedirs(d)
     pass
-def trainModel(train_set_x, n_hidden, learning_rate, training_epochs, batch_size, np_rng, plot_loc=None, model_loc=MODEL, logger=logger):
+def trainModel(train_set_x, n_hidden, learning_rate, training_epochs, batch_size, np_rng, plot_loc=None, model_loc=MODEL, model_id=MODEL_ID, logger=logger):
     """Builds the model"""
+    
+    full_model_path = os.path.join(
+        data.model_dir,
+        model_id + '.pkl'
+    )
+    
     logger.info('Building model ...')
     
     theano_rng = T.shared_randomstreams.RandomStreams(np_rng.randint(2 ** 30))
@@ -79,7 +89,7 @@ def trainModel(train_set_x, n_hidden, learning_rate, training_epochs, batch_size
     )
      
     if plot_loc: # append '_%d.png' % epoch to this
-         base_name = os.path.join(plot_loc,'filters_at_epoch')
+         base_name = os.path.join(plot_loc, model_id + '_filters')
     
     logger.info('Training model ...')
     plotting_time = 0.
@@ -111,7 +121,7 @@ def trainModel(train_set_x, n_hidden, learning_rate, training_epochs, batch_size
                     tile_spacing=(1, 1)
                 )
             )
-            image.save(base_name + '_%i.png' % epoch))
+            image.save(base_name + '_epoch_{:04d}.png'.format(epoch))
             plotting_end = timeit.default_timer()
             plotting_time_i = plotting_end - plotting_start
             plotting_time += plotting_time_i
@@ -123,7 +133,7 @@ def trainModel(train_set_x, n_hidden, learning_rate, training_epochs, batch_size
     if plot_loc: logger.debug('plotting took %f minutes' % (plotting_time / 60.))
     logger.debug('epochs took %f minutes' % (epoch_time / 60.))
     
-    with open(model_loc, 'wb') as f: pickle.dump(rbm_model, f)
+    with open(full_model_path, 'wb') as f: pickle.dump(rbm_model, f)
     logger.debug('saved model as: {}'.format(model_loc))
     
     return rbm_model
@@ -194,7 +204,7 @@ def sampleModel(rbm_model, test_set_x,  n_chains, n_samples, rng, save_loc, logg
 
 if __name__ == "__main__":
     # make directory for storing data
-    output_dir = os.path.join(data.plot_dir,'rbm_plots')
+    output_dir = data.plot_dir
     mkdir(output_dir, logger)
     
     # Model parameters
@@ -204,8 +214,8 @@ if __name__ == "__main__":
     n_hidden = 500
     
     # sampling parameters
-    n_chains = 50       # number of chains (horizontal axis)
-    n_samples = 50      # number of samples (vertical axis)
+    n_chains = 10       # number of chains (horizontal axis)
+    n_samples = 10      # number of samples (vertical axis)
     plot_every = 1000   # sep due to correlation of samples
     sample_fname = 'samples.png'
     

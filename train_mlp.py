@@ -26,28 +26,37 @@ Notes:
     - Validation error remains close to 50%
 """
 
-MODEL = os.path.join(data.model_dir, os.path.splitext(os.path.basename(__file__))[0]+'.pkl')
+# Save locations
+## built model
+MODEL = data.model_dir
+MODEL_ID = os.path.splitext(os.path.basename(__file__))[0]
 
-# model parameters
+## visualising runtime parameters
+DATA_DIR = data.data_dir
+PLOT_DIR = data.plot_dir
+
+# Paramter settings
+## model parameters
 n_hidden    = 10000
 n_in        = 10092
 n_out       = 2
 
-# training parameters
+## training parameters
 n_epochs        = 1000
 batch_size      = 10
 learning_rate   = 0.01
 l1_reg          = 0.00
 L2_reg          = 0.00
 
-# early-stopping parameters
-patience                = 100                   # look as this many examples regardless
-patience_increase       = 2                     # wait this much longer when a new best is found
-improvement_threshold   = 0.995                 # consider this relative improvement significa
+## early-stopping parameters
+patience                = 10000 # look as this many examples regardless
+patience_increase       = 2     # wait this much longer if new best is found
+improvement_threshold   = 0.995 # consider this improvement significant
 
 if __name__ == "__main__":
     
-    logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.DEBUG)
+    logger = utils.logs.get_logger(__name__,
+        update_stream_level=utils.logs.logging.DEBUG)
     logger.info('Loading data ...')
     source = data.Load_Data(location=data.data_loc, search_pat='day1')
     
@@ -57,8 +66,8 @@ if __name__ == "__main__":
     test_set_x, test_set_y = datasets[2]
     
     # compute number of minibatches for training, validation and testing
-    n_train_batches = train_set_x.get_value(borrow=True).shape[0] // batch_size
-    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] // batch_size
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0]// batch_size
+    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]// batch_size
     n_test_batches = test_set_x.get_value(borrow=True).shape[0] // batch_size
     
     logger.info('Building the model ...')
@@ -137,41 +146,46 @@ if __name__ == "__main__":
     )
     
     logger.info('Training the model ...')
-    visualise_weights = [
-        {
-            'x':classifier.hiddenLayer.w.get_value(borrow=True).T,
-            'img_shape':(29*2, 29*2*3),
-            'tile_shape':(36, 12),
-            'tile_spacing':(1, 1),
-            'save_loc':'dump/plots/mlp_plots/' 
+    
+    # Visualise these items during training
+    visualise_weights = [       # list of images to create
+        {                           # input - hiddenlayer image
+            'x':classifier.hiddenLayer.w.get_value(
+                borrow=True).T,         # the parameter
+            'img_shape':(29*2, 29*2*3), # prod. of tuple == # input nodes
+            'tile_shape':(36, 12),      # Max number is # nodes in next layer
+            'tile_spacing':(1, 1),      # separate imgs x,y
+            'save_loc':PLOT_DIR         # save location w/o  ext.
                 + os.path.basename(__file__).split('.')[0]
                 + '_inputLayer'
                 + '_filters'
         },
-        {
-            'x':classifier.logRegressionLayer.w.get_value(borrow=True).T,
-            'img_shape':(100, 100),
+        {                       # hidden - logistic layer
+            'x':classifier.logitLayer.w.get_value(borrow=True).T,
+            'img_shape':(100, 100),     # prod. of tuple == # hidden nodes
             'tile_shape':(1, 2),
             'tile_spacing':(1, 1),
-            'save_loc':'dump/plots/mlp_plots/' 
+            'save_loc':PLOT_DIR
                 + os.path.basename(__file__).split('.')[0]
                 + '_logitLayer'
                 + '_weights'
         }
     ]
-    
-    visualise_cost = {
-        'frequency':1,
-        'save_loc':'dump/data/mlp_data/'
+
+    # visualise cost during runtime
+    visualise_cost = {      # visualising the cost
+        'frequency':1,      # frequency of sampling
+        'save_loc':DATA_DIR # location to save to w/o ext.
         + os.path.basename(__file__).split('.')[0]
         + '_cost'
     }
-    
+
+    # visualise arbitrary parameters at runtime
     visualise_params = [
         {
             'frequency':1,
             'param':classifier.hiddenLayer.w.get_value(borrow=True).ravel(),
-            'save_loc':'dump/data/mlp_data/' 
+            'save_loc':DATA_DIR
                 + os.path.basename(__file__).split('.')[0]
                 + '_hiddenLayer'
                 + '_weights'
@@ -179,33 +193,34 @@ if __name__ == "__main__":
         {
             'frequency':1,
             'param':classifier.hiddenLayer.b.get_value(borrow=True).ravel(),
-            'save_loc':'dump/data/mlp_data/' 
+            'save_loc':DATA_DIR
                 + os.path.basename(__file__).split('.')[0]
                 + '_hiddenLayer'
                 + '_bias'
         },
         {
             'frequency':1,
-            'param':classifier.logRegressionLayer.w.get_value(borrow=True).ravel(),
-            'save_loc':'dump/data/mlp_data/' 
+            'param':classifier.logitLayer.w.get_value(borrow=True).ravel(),
+            'save_loc':DATA_DIR
                 + os.path.basename(__file__).split('.')[0]
                 + '_logitLayer'
                 + '_weights'
         },
         {
             'frequency':1,
-            'param':classifier.logRegressionLayer.b.get_value(borrow=True).ravel(),
-            'save_loc':'dump/data/mlp_data/' 
+            'param':classifier.logitLayer.b.get_value(borrow=True).ravel(),
+            'save_loc':DATA_DIR
                 + os.path.basename(__file__).split('.')[0]
                 + '_logitLayer'
                 + '_bias'
         }
     ]
+    
     utils.training.train(classifier, train_model, validate_model, test_model,
         n_train_batches, n_valid_batches, n_test_batches,
         n_epochs, learning_rate,
         patience, patience_increase, improvement_threshold, 
-        MODEL, logger, 
+        MODEL, MODEL_ID, logger, 
         visualise_weights=visualise_weights, 
         visualise_cost=visualise_cost,
         visualise_params=visualise_params

@@ -28,7 +28,10 @@ __doc__ = """
     :param batch_size: the size of a mini-batch
     """
 
-MODEL = os.path.join(data.model_dir, os.path.splitext(os.path.basename(__file__))[0]+'.pkl')
+# Save locations
+## built model
+MODEL = data.model_dir
+MODEL_ID = os.path.splitext(os.path.basename(__file__))[0]
 
 if __name__ == '__main__':
     pretraining_epochs=100
@@ -104,7 +107,7 @@ if __name__ == '__main__':
         n_train_batches, n_valid_batches, n_test_batches,
         training_epochs, finetune_lr,
         patience, patience_increase, improvement_threshold, 
-        MODEL, logger)
+        MODEL, MODEL_ID, logger)
     
     logger.info('Testing the model ...')
     common.predict(MODEL, source, logger)

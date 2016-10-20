@@ -1,9 +1,17 @@
 # always ignore these files
+
+## file paths
 *gitignore*
 *docs*
 *config.ini
 *runlog.log
 
+## directories
+dump/data/*
+dump/plots/*
+
+## file types
+*.png
+*.dat
+
 # ignore files that aren't ready
-*data*
-*plots*
