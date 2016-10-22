@@ -131,64 +131,65 @@ if __name__ == "__main__":
     logger.info('Training the model ...')
     
     # Visualise these items during training
-    visualise_weights = [       # list of images to create
-        {                           # input - hiddenlayer image
+    visualise_weights = {       # dict of images to create
+        'inputLayer' + '_weights': {    # input - hiddenlayer image
             'x':classifier.hiddenLayer.w.get_value(
                 borrow=True).T,         # the parameter
             'img_shape':(28, 28),       # prod. of tuple == # input nodes
             'tile_shape':(25, 25),      # Max number is # nodes in next layer
-            'tile_spacing':(1, 1),      # separate imgs x,y
-            'name':'_inputLayer' + '_weights'
+            'tile_spacing':(1, 1)       # separate imgs x,y
         },
-        {                       # hidden - logistic layer
+        'logitLayer' + '_weights': {    # hidden - logistic layer
             'x':classifier.logitLayer.w.get_value(borrow=True).T,
             'img_shape':(25, 25),       # prod. of tuple == # hidden nodes
             'tile_shape':(2, 10),
-            'tile_spacing':(1, 1),
-            'name':'_logitLayer' + '_weights'
+            'tile_spacing':(1, 1)
         }
-    ]
-
+    }
+    
     # visualise cost during runtime
     visualise_cost = {      # visualising the cost
-        'frequency':1,      # frequency of sampling
-        'save_loc':DATA_DIR # location to save to w/o ext.
-        + os.path.basename(__file__).split('.')[0]
-        + '_cost'
-    }
-
-    # visualise arbitrary parameters at runtime
-    visualise_params = [
-        {
-            'frequency':1,
-            'param':classifier.hiddenLayer.w.get_value(borrow=True).ravel(),
-            'name': 'hiddenLayer' + '_weights'
-        },
-        {
-            'frequency':1,
-            'param': classifier.hiddenLayer.b.get_value(borrow=True).ravel(),
-            'name': 'hiddenLayer' + '_bias'
-        },
-        {
-            'frequency':1,
-            'param': classifier.logitLayer.w.get_value(borrow=True).ravel(),
-            'name': 'logitLayer' + '_weights'
-        },
-        {
-            'frequency':1,
-            'param':classifier.logitLayer.b.get_value(borrow=True).ravel(),
-            'name': 'logitLayer' + '_bias'
+        'cost':{'freq':1}      # frequency of sampling
         }
-    ]
+    
+    # visualise arbitrary parameters at runtime
+    visualise_params = {
+        'hiddenLayer' + '_weights': {
+            'freq':1,
+            'x':classifier.hiddenLayer.w.get_value(borrow=True).ravel()
+        },
+        'hiddenLayer' + '_bias': {
+            'freq':1,
+            'x': classifier.hiddenLayer.b.get_value(borrow=True).ravel()
+        },
+        'logitLayer' + '_weights': {
+            'freq':1,
+            'x': classifier.logitLayer.w.get_value(borrow=True).ravel()
+        },
+        'logitLayer' + '_bias': {
+            'freq':1,
+            'x':classifier.logitLayer.b.get_value(borrow=True).ravel()
+        }
+    }
+    
+    param_man = utils.visualise.Visualise_Runtime(
+        plot_dir=PLOT_DIR,
+        data_dir=DATA_DIR
+    )
+    param_man.initalise(
+        run_id = MODEL_ID,
+        default_freq = min(n_train_batches, patience // 2),
+        params = visualise_params,
+        cost = visualise_cost,
+        imgs = visualise_weights
+        )
+    
     utils.training.train(classifier, train_model, validate_model, test_model,
         n_train_batches, n_valid_batches, n_test_batches,
         n_epochs, learning_rate,
-        patience, patience_increase, improvement_threshold, 
+        patience, patience_increase, improvement_threshold,
         MODEL, MODEL_ID, logger,
-        PLOT_DIR, DATA_DIR,
-        visualise_weights=visualise_weights, 
-        visualise_cost=visualise_cost,
-        visualise_params=visualise_params
+        visualise=param_man
     )
     logger.info('Testing the model ...')
     common.predict(os.path.join(MODEL, MODEL_ID + ".pkl"), source, logger)

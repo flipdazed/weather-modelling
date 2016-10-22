@@ -41,8 +41,8 @@ batch_size          = 10
 
 # early-stopping parameters
 patience                = 40    # look as this many examples regardless
-patience_increase       = 5     # wait this much longer when a new best is found
-improvement_threshold   = 0.995 # consider this relative improvement significant
+patience_increase       = 2     # wait this much longer if new best found
+improvement_threshold   = 0.995 # consider this improvement significant
 
 if __name__ == '__main__':
     

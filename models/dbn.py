@@ -56,7 +56,8 @@ class DBN(object):
         
         assert self.n_layers > 0
         
-        if not theano_rng: theano_rng = MRG_RandomStreams(np_rng.randint(2 ** 30))
+        if not theano_rng: 
+            theano_rng = MRG_RandomStreams(np_rng.randint(2 ** 30))
         
         # allocate symbolic variables for the data
         
@@ -91,11 +92,13 @@ class DBN(object):
             if i == 0: layer_inputs = self.x
             else: layer_inputs = self.sigmoid_layers[-1].output
             
-            sigmoid_layer = Hidden_Layer(rng=np_rng,
-                                        inputs=layer_inputs,
-                                        n_in=inputs_size,
-                                        n_out=hidden_layers_sizes[i],
-                                        activation=T.nnet.ultra_fast_sigmoid)
+            sigmoid_layer = Hidden_Layer(
+                rng=np_rng,
+                inputs=layer_inputs,
+                n_in=inputs_size,
+                n_out=hidden_layers_sizes[i],
+                activation=T.nnet.hard_sigmoid
+            )
             
             # add the layer to our list of layers
             self.sigmoid_layers.append(sigmoid_layer)
@@ -108,34 +111,36 @@ class DBN(object):
             self.params.extend(sigmoid_layer.params)
             
             # Construct an RBM that shared weights with this layer
-            rbm_layer = RBM(np_rng=np_rng,
-                            theano_rng=theano_rng,
-                            inputs=layer_inputs,
-                            n_visible=inputs_size,
-                            n_hidden=hidden_layers_sizes[i],
-                            w=sigmoid_layer.w,
-                            hbias=sigmoid_layer.b)
+            rbm_layer = RBM(
+                np_rng=np_rng,
+                theano_rng=theano_rng,
+                inputs=layer_inputs,
+                n_visible=inputs_size,
+                n_hidden=hidden_layers_sizes[i],
+                w=sigmoid_layer.w,
+                hbias=sigmoid_layer.b
+            )
             self.rbm_layers.append(rbm_layer)
         
         # We now need to add a logistic layer on top of the MLP
-        self.logLayer = Logistic_Regression(
+        self.logitLayer = Logistic_Regression(
             inputs=self.sigmoid_layers[-1].output,
             n_in=hidden_layers_sizes[-1],
             n_out=n_outs)
-        self.params.extend(self.logLayer.params)
+        self.params.extend(self.logitLayer.params)
         
         # compute the cost for second phase of training, defined as the
         # negative log likelihood of the logistic regression (output) layer
-        self.finetune_cost = self.logLayer.negativeLogLikelihood(self.y)
+        self.finetune_cost = self.logitLayer.negativeLogLikelihood(self.y)
         
         # compute the gradients with respect to the model parameters
         # symbolic variable that points to the number of errors made on the
         # minibatch given by self.x and self.y
-        self.errors = self.logLayer.errors(self.y)
+        self.errors = self.logitLayer.errors(self.y)
         
         # get prediction from logistic sgd
-        self.y_pred = self.logLayer.y_pred
-        self.p_y_given_x = self.logLayer.p_y_given_x
+        self.y_pred = self.logitLayer.y_pred
+        self.p_y_given_x = self.logitLayer.p_y_given_x
         pass
     def pretrainingFunctions(self, train_set_x, batch_size, k):
         """Generates a list of functions, for performing one step of
@@ -168,7 +173,8 @@ class DBN(object):
             # get the cost and the updates list
             # using CD-k here (persisent=None) for training each RBM.
             # TODO: change cost function to reconstruction error
-            cost, updates = rbm.getCostUpdates(learning_rate, persistent=None, k=k)
+            cost, updates = rbm.getCostUpdates(learning_rate,
+                 persistent=None, k=k)
             
             # compile the theano function
             fn = theano.function(
@@ -205,8 +211,10 @@ class DBN(object):
         (test_set_x,  test_set_y)  = datasets[2]
         
         # compute number of minibatches for training, validation and testing
-        n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] // batch_size
-        n_test_batches = test_set_x.get_value(borrow=True).shape[0] // batch_size
+        n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
+        n_test_batches = test_set_x.get_value(borrow=True).shape[0]
+        n_valid_batches //= batch_size
+        n_test_batches //= batch_size
         
         index = T.lscalar('index')  # index to a [mini]batch
         
@@ -223,8 +231,8 @@ class DBN(object):
             outputs=self.finetune_cost,
             updates=updates,
             givens={
-                self.x: train_set_x[index * batch_size: (index + 1) * batch_size],
-                self.y: train_set_y[index * batch_size: (index + 1) * batch_size]
+                self.x:train_set_x[index*batch_size:(index+1)*batch_size],
+                self.y:train_set_y[index*batch_size:(index+1)*batch_size]
             }
         )
         
@@ -232,8 +240,8 @@ class DBN(object):
             inputs=[index],
             outputs=self.errors,
             givens={
-                self.x: test_set_x[index * batch_size: (index + 1) * batch_size],
-                self.y: test_set_y[index * batch_size: (index + 1) * batch_size]
+                self.x:test_set_x[index*batch_size:(index+1)*batch_size],
+                self.y:test_set_y[index*batch_size:(index+1)*batch_size]
             }
         )
         
@@ -241,8 +249,8 @@ class DBN(object):
             inputs=[index],
             outputs=self.errors,
             givens={
-                self.x: valid_set_x[index * batch_size: (index + 1) * batch_size],
-                self.y: valid_set_y[index * batch_size: (index + 1) * batch_size]
+                self.x:valid_set_x[index*batch_size:(index+1)*batch_size],
+                self.y:valid_set_y[index*batch_size:(index+1)*batch_size]
             }
         )
         
