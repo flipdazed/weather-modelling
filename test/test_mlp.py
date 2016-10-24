@@ -136,8 +136,9 @@ if __name__ == "__main__":
             'x':classifier.hiddenLayer.w.get_value(
                 borrow=True).T,         # the parameter
             'img_shape':(28, 28),       # prod. of tuple == # input nodes
-            'tile_shape':(25, 25),      # Max number is # nodes in next layer
+            'tile_shape':(10, 10),      # Max number is # nodes in next layer
             'tile_spacing':(1, 1)       # separate imgs x,y
+            ,'runtime_plots':True
         },
         'logitLayer' + '_weights': {    # hidden - logistic layer
             'x':classifier.logitLayer.w.get_value(borrow=True).T,

@@ -119,9 +119,10 @@ def train(classifier,
             epoch += 1
             
             epoch_start_i = timeit.default_timer()
+            minibatch_avg_costs = []
             for minibatch_index in range(n_train_batches):
-                
                 minibatch_avg_cost = train_model(minibatch_index)
+                minibatch_avg_costs.append(minibatch_avg_cost)
                 
                 # iteration number
                 i = (epoch - 1) * n_train_batches + minibatch_index
@@ -176,7 +177,7 @@ def train(classifier,
                 if param_man:
                     param_man.getValues(
                         i = i,
-                        cost = np.asscalar(minibatch_avg_cost)
+                        cost = np.mean(minibatch_avg_costs)
                     )
                     param_man.writeRuntimeValues(i=i)
                 

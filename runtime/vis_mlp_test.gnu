@@ -2,10 +2,12 @@
 
 ### files
 base_loc = "dump/data/".run_id."_"
+plot_loc = "dump/plots/".run_id."_"
 ext = ".dat"
 
 cost_files = system("ls ".base_loc."cost_"."*".ext)
 params_files = system("ls ".base_loc."params_"."*".ext)
+weight_file = system("ls ".plot_loc."*weights"."*".ext)
 
 params_names = system("ls ".base_loc."params_"."*".ext." | sed -e 's#".base_loc."params_"."\\(.*\\)\\".ext."#\\1#' -e 's#_# #g'")
 
@@ -13,7 +15,7 @@ params_names = system("ls ".base_loc."params_"."*".ext." | sed -e 's#".base_loc.
 hist(x,width)=width*floor(x/width)+width/2.0
 
 ### Start multiplot
-set terminal wxt size 1440,800 font 'Verdana,6'
+set terminal qt noraise size 1440,800 font 'Verdana,6'
 
 set multiplot
 xn=4
@@ -34,11 +36,26 @@ ys = yf-yi
 unset key
 set title "cost vs. training samples" font ",10"
 f = word(cost_files, 1)
-set size xs/x,ys/(yn/2)/y
+set size (xn/2)*(xs/xn)/x,ys/(yn/2)/y
 set origin xi/x,(yi+ys/(yn/2))/y
 set xlabel "sample" font ",7"
 set ylabel "value" font ",7"
 plot f u (column(0)):1 w l ls 1 lc rgb"blue"
+
+# --- GRAPH input image
+unset key
+set title "input weights" font ",10"
+f = word(weight_file, 1)
+set size (xn/2)*(xs/xn)/x,ys/(yn/2)/y
+set origin (xi+(xn/2)*(xs/xn))/x,(yi+ys/(yn/2))/y
+set border linewidth 0
+unset key
+unset colorbox
+unset tics
+unset xlabel
+unset ylabel
+set palette grey
+plot f matrix w image
 
 set xtics rotate by -45
 # --- GRAPH params per batch

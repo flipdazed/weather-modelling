@@ -195,13 +195,14 @@ if __name__ == "__main__":
             'img_shape':(28, 28),       # prod. of tuple == # input nodes
             'tile_shape':(15, 30),      # Max number is # nodes in next layer
             'tile_spacing':(1, 1),      # separate imgs x,y
-            'runtime_plots': True
+            'runtime_plots': True,
+            'freq':50
         }
     }
     
     # visualise cost during runtime
     visualise_cost = {      # visualising the cost
-        'cost':{'freq':1}      # frequency of sampling
+        'cost':{'freq':50}  # frequency of sampling
         }
     
     # visualise arbitrary parameters at runtime

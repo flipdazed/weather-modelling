@@ -62,6 +62,7 @@ set xtics rotate by -45
 # --- GRAPH params per batch
 do for [i=1:words(params_files)] {
     unset key
+    set tics
     p = word(params_names,i*2-1)." ".word(params_names,i*2)
     f = word(params_files, i)
     set title p." vs. training samples" font ",6"
@@ -75,11 +76,12 @@ do for [i=1:words(params_files)] {
 # --- GRAPH histogram of params
 do for [i=1:words(params_files)] {
     unset key
+    set tics
     p = word(params_names,i*2-1)." ".word(params_names,i*2)
     f = word(params_files, i)
     
     set title "freq. of av. ".p font ",6"
-    
+    set tics
     set size (xs/xn)/x,(ys/yn)/y
     set origin (xi+(i-1)*(xs/xn))/x,yi/y
     stats f using 1 nooutput
@@ -91,7 +93,7 @@ do for [i=1:words(params_files)] {
     
     # set boxwidth width*0.9
     # set style fill solid 0.5
-    
+    set tics
     set xlabel "mean value" font ",7"
     set ylabel "freq" font ",7"
     plot f u (hist($1,width)):(1.0/STATS_records) \

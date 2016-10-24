@@ -15,7 +15,7 @@ params_names = system("ls ".base_loc."params_"."*".ext." | sed -e 's#".base_loc.
 hist(x,width)=width*floor(x/width)+width/2.0
 
 ### Start multiplot
-set terminal wxt size 1440,800 font 'Verdana,6' noraise
+set terminal qt size 1440,800 font 'Verdana,6' noraise
 
 set multiplot
 xn = 8
