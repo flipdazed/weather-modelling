@@ -36,14 +36,10 @@ All scripts contain [`import caffeine`](https://pypi.python.org/pypi/caffeine/0.
 <a name="visualising">
 # Visualising Parameters
 Several scripts are provided for visualising parameters at runtime.
-See (`runtime`)[https://github.com/flipdazed/weather-modelling/tree/master/runtime] for more details.
+See [`runtime`](https://github.com/flipdazed/weather-modelling/tree/master/runtime) for more details.
 An example is shown below.
 
-<video poster="https://raw.githubusercontent.com/flipdazed/weather-modelling/screenshots/screenshots/visualise_params_cover.png" width="1920" height="1080" controls preload> 
-    <source src="https://raw.githubusercontent.com/flipdazed/weather-modelling/screenshots/screenshots/visualise_params.mp4" media="only screen and (min-device-width: 568px)"></source> 
-    <source src="https://raw.githubusercontent.com/flipdazed/weather-modelling/screenshots/screenshots/visualise_params.iphone.mp4" media="only screen and (max-device-width: 568px)"></source> 
-    <source src="https://raw.githubusercontent.com/flipdazed/weather-modelling/screenshots/screenshots/visualise_params.webm"></source> 
-</video>
+![](/../screenshots/screenshots/visualise_params.gif)
 
 <a name="structure"/>
 # Structure

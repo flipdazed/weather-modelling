@@ -7,8 +7,6 @@
 *runlog.log
 
 ## directories
-dump/data/*
-dump/plots/*
 
 ## file types
 *.png
