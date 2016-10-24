@@ -1,7 +1,4 @@
-# always ignore these files
 *gitignore*
-*config.ini
-*runlog.log
-*rbm_plots*
-
-# ignore files that aren't ready
+*dump*
+*.ini
+*.log
