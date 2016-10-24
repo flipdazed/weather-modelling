@@ -2,6 +2,7 @@ import numpy as np
 import theano
 import theano.tensor as T
 from theano.sandbox.rng_mrg import MRG_RandomStreams
+from theano.tensor.nnet import sigmoid as activation
 
 import utils
 from models.logit import Logistic_Regression
@@ -97,7 +98,7 @@ class DBN(object):
                 inputs=layer_inputs,
                 n_in=inputs_size,
                 n_out=hidden_layers_sizes[i],
-                activation=T.nnet.hard_sigmoid
+                activation=activation
             )
             
             # add the layer to our list of layers

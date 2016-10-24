@@ -2,6 +2,7 @@
 
 ### files
 base_loc = "dump/data/".run_id."_"
+plot_loc = "dump/plots/".run_id."_"
 ext = ".dat"
 
 cost_files = system("ls ".base_loc."cost_"."*".ext)
@@ -13,10 +14,10 @@ params_names = system("ls ".base_loc."params_"."*".ext." | sed -e 's#".base_loc.
 hist(x,width)=width*floor(x/width)+width/2.0
 
 ### Start multiplot
-set terminal wxt size 1440,800 font 'Verdana,6'
+set terminal wxt size 1440,800 font 'Verdana,6' noraise
 
 set multiplot
-xn=8
+xn = 8
 yn = 1+1+2
 x = xn
 y = yn
@@ -85,5 +86,5 @@ do for [i=1:words(params_files)] {
 unset multiplot
 ### End multiplot
 
-pause 5
+pause 1
 reread

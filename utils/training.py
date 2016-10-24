@@ -125,47 +125,53 @@ def train(classifier,
                 
                 # iteration number
                 i = (epoch - 1) * n_train_batches + minibatch_index
-                if (i+1) % validation_frequency == 0:
-                    # compute zero-one loss on validation set
-                    validation_losses = [validate_model(j)
-                        for j in range(n_valid_batches)]
-                    this_validation_loss = np.mean(validation_losses)
-                    
-                    train_end_i = timeit.default_timer()
-                    train_time_i = train_end_i - epoch_start_i
-                    logger.debug('Epoch {:3d}, minibatch {:3d}/{:3d}: '
-                        'Valid Err {:.3f}%; Cost {:8.1e} '
-                        'Valid Time {:.2f} mins'.format(
-                            epoch, minibatch_index + 1, n_train_batches,
-                            this_validation_loss * 100.,
-                            np.asscalar(minibatch_avg_cost), train_time_i/60.
-                        )
-                    )
-                    
-                    # if we got the best validation score until now
-                    if this_validation_loss < best_validation_loss:
-                        #improve patience if loss improvement is good enough
-                        if (this_validation_loss
-                             < best_validation_loss*improvement_threshold):
-                            patience = max(patience, i * patience_increase)
+                if validate_model is not None:
+                    if (i+1) % validation_frequency == 0:
+                        # compute zero-one loss on validation set
+                        validation_losses = [validate_model(j)
+                            for j in range(n_valid_batches)]
+                        this_validation_loss = np.mean(validation_losses)
                         
-                        best_validation_loss = this_validation_loss
-                        
-                        # test it on the test set
-                        test_losses = [
-                            test_model(j)
-                            for j in range(n_test_batches)
-                        ]
-                        test_score = np.mean(test_losses)
-                        test_end_i = timeit.default_timer()
-                        test_time_i = test_end_i - epoch_start_i
-                        logger.info('Epoch {:3d}, Batch     {:3d}/{:3d}: '
-                            'Best Test Err {:.3f}%, '
-                            'Test Time {:.2f} mins'.format(
+                        train_end_i = timeit.default_timer()
+                        train_time_i = train_end_i - epoch_start_i
+                        logger.debug('Epoch {:3d}, minibatch {:3d}/{:3d}: '
+                            'Valid Err {:.3f}%; Cost {:8.1e} '
+                            'Valid Time {:.2f} mins'.format(
                                 epoch, minibatch_index + 1, n_train_batches,
-                                test_score * 100., test_time_i/60.
+                                this_validation_loss * 100.,
+                                np.asscalar(minibatch_avg_cost),
+                                train_time_i/60.
                             )
                         )
+                        
+                        # if we got the best validation score until now
+                        if test_model is not None:
+                            if this_validation_loss < best_validation_loss:
+                                # improve patience if good improvement
+                                if (this_validation_loss <  
+                                    best_validation_loss*improvement_threshold
+                                ): patience = max(patience, 
+                                    i*patience_increase)
+                                
+                                best_validation_loss = this_validation_loss
+                                
+                                # test it on the test set
+                                test_losses = [
+                                    test_model(j)
+                                    for j in range(n_test_batches)
+                                ]
+                                test_score = np.mean(test_losses)
+                                test_end_i = timeit.default_timer()
+                                test_time_i = test_end_i - epoch_start_i
+                                logger.info('Epoch {:3d}, Batch     '
+                                    '{:3d}/{:3d}: '
+                                    'Best Test Err {:.3f}%, '
+                                    'Test Time {:.2f} mins'.format(
+                                        epoch, minibatch_index + 1,
+                                        n_train_batches,
+                                        test_score * 100., test_time_i/60.
+                                    )
+                                )
                 
                 if param_man:
                     param_man.getValues(

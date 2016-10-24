@@ -2,6 +2,7 @@ import numpy as np
 import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
+from theano.tensor.nnet import sigmoid as activation
 
 import utils
 from models.logit import Logistic_Regression
@@ -51,7 +52,7 @@ class RBM(object):
         
         # create a number generator
         if np_rng is None: np_rng = np.random.RandomState(1234)
-        if theano_rng is None: theano_rng = RandomStreams(np_rng.randint(2 ** 30))
+        if theano_rng is None: theano_rng=RandomStreams(np_rng.randint(2**30))
         
         if w is None:
             # W is initialized with `initial_w` which is uniformely
@@ -113,7 +114,7 @@ class RBM(object):
         reconstruction cost function)
         """
         pre_sigmoid_activation = T.dot(vis, self.w) + self.hbias
-        return [pre_sigmoid_activation, T.nnet.ultra_fast_sigmoid(pre_sigmoid_activation)]
+        return [pre_sigmoid_activation,activation(pre_sigmoid_activation)]
     def sampleHgivenV(self, v0_sample):
         """ This function infers state of hidden units given visible units """
         # compute the activation of the hidden units given a sample of
@@ -139,7 +140,7 @@ class RBM(object):
         
         """
         pre_sigmoid_activation = T.dot(hid, self.w.T) + self.vbias
-        return [pre_sigmoid_activation, T.nnet.ultra_fast_sigmoid(pre_sigmoid_activation)]
+        return [pre_sigmoid_activation, activation(pre_sigmoid_activation)]
     def sampleVgivenH(self, h0_sample):
         """ This function infers state of visible units given hidden units """
         # compute the activation of the visible given the hidden sample
@@ -154,10 +155,14 @@ class RBM(object):
         return [pre_sigmoid_v1, v1_mean, v1_sample]
     def gibbsHVH(self, h0_sample):
         """ This function implements one step of Gibbs sampling,
-            starting from the hidden state"""
-        pre_sigmoid_v1, v1_mean, v1_sample = self.sampleVgivenH(h0_sample)
-        pre_sigmoid_h1, h1_mean, h1_sample = self.sampleHgivenV(v1_sample)
-        return [pre_sigmoid_v1, v1_mean, v1_sample, pre_sigmoid_h1, h1_mean, h1_sample]
+            starting from the hidden state
+        
+        v_list = [pre_sigmoid_v1, v1_mean, v1_sample]
+        h_list = [pre_sigmoid_h1, h1_mean, h1_sample]
+        """
+        v_list = self.sampleVgivenH(h0_sample)
+        h_list = self.sampleHgivenV(v_list[-1])
+        return v_list + h_list
     def gibbsVHV(self, v0_sample):
         """ This function implements one step of Gibbs sampling,
             starting from the visible state"""
@@ -239,7 +244,10 @@ class RBM(object):
             monitoring_cost = self.getPseudoLikelihoodCost(updates)
         else:
             # reconstruction cross-entropy is a better proxy for CD
-            monitoring_cost = self.getReconstructionCost(updates,pre_sigmoid_nvs[-1])
+            monitoring_cost = self.getReconstructionCost(
+                updates,
+                pre_sigmoid_nvs[-1]
+            )
         
         return monitoring_cost, updates
         # end-snippet-4
@@ -264,7 +272,7 @@ class RBM(object):
         fe_xi_flip = self.freeEnergy(xi_flip)
         
         # equivalent to e^(-FE(x_i)) / (e^(-FE(x_i)) + e^(-FE(x_{\i})))
-        cost = T.mean(self.n_visible * T.log(T.nnet.ultra_fast_sigmoid(fe_xi_flip - fe_xi)))
+        cost = T.mean(self.n_visible * T.log(activation(fe_xi_flip - fe_xi)))
         
         # increment bit_i_idx % number as part of updates
         updates[bit_i_idx] = (bit_i_idx + 1) % self.n_visible
@@ -301,9 +309,8 @@ class RBM(object):
         
         cross_entropy = T.mean(
             T.sum(
-                self.inputs * T.log(T.nnet.ultra_fast_sigmoid(pre_sigmoid_nv)) +
-                (1 - self.inputs) * T.log(1 - 
-                    T.nnet.ultra_fast_sigmoid(pre_sigmoid_nv)),
+                self.inputs*T.log(activation(pre_sigmoid_nv)) \
+                    + (1-self.inputs)*T.log(1 - activation(pre_sigmoid_nv)),
                 axis=1
             )
         )

@@ -162,6 +162,16 @@ class Visualise_Runtime(object):
                 data = settings['data'][-1]
                 with open(save_loc, write_type) as f:
                     f.write('{0:12.6e}\n'.format(data))
+        
+        for param_name, settings in self.imgs.iteritems():
+            if 'runtime_plots' not in settings['settings']: continue
+            if not settings['settings']['runtime_plots']: continue
+            
+            if (i+1) % settings['settings']['freq'] == 0:
+                save_loc = settings['settings']['save_path']+'.dat'
+                data = settings['data'][-1]
+                np.savetxt(save_loc, data, fmt='%03d')
+        
         pass
     def saveValues(self):
         """save all the recorded values"""

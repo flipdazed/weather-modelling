@@ -16,14 +16,25 @@ from models.mlp import *
 MODEL = data.model_dir
 MODEL_ID = os.path.splitext(os.path.basename(__file__))[0]
 
+## visualising runtime parameters
+DATA_DIR = data.data_dir
+PLOT_DIR = data.plot_dir
+
+## training parameters
+n_epochs        = 1000
+batch_size      = 600
+learning_rate   = 0.13
+
+## early-stopping parameters
+patience                = 5000  # look as this many examples regardless
+patience_increase       = 2     # wait this much longer if new best is found
+improvement_threshold   = 0.995 # consider this improvement significant
+
 if __name__ == "__main__":
-    logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.INFO)
+    logger = utils.logs.get_logger(__name__, 
+        update_stream_level=utils.logs.logging.INFO)
     logger.info('Loading data ...')
     source = data.Load_Data()
-    
-    learning_rate=0.13
-    n_epochs=1000
-    batch_size=600
     
     datasets = source.mnist()
     train_set_x, train_set_y = datasets[0]
@@ -31,8 +42,8 @@ if __name__ == "__main__":
     test_set_x, test_set_y = datasets[2]
     
     # compute number of minibatches for training, validation and testing
-    n_train_batches = train_set_x.get_value(borrow=True).shape[0] // batch_size
-    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] // batch_size
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0]// batch_size
+    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]// batch_size
     n_test_batches = test_set_x.get_value(borrow=True).shape[0] // batch_size
     
     logger.info('Building the model ...')
@@ -99,18 +110,54 @@ if __name__ == "__main__":
         }
     )
     
-    # early-stopping parameters
-    patience = 5000  # look as this many examples regardless
-    patience_increase = 2  # wait this much longer when a new best is found
-    improvement_threshold = 0.995 # a relative improvement of this much is
-                                  # considered significant
+    # Visualise these items during training
+    visualise_weights = {       # dict of images to create
+        'inputLayer' + '_weights': {    # input - hiddenlayer image
+            'x':classifier.w.get_value(
+                borrow=True).T,         # the parameter
+            'img_shape':(28, 28),       # prod. of tuple == # input nodes
+            'tile_shape':(2, 5),      # Max number is # nodes in next layer
+            'tile_spacing':(1, 1)       # separate imgs x,y
+        }
+    }
+    
+    # visualise cost during runtime
+    visualise_cost = {      # visualising the cost
+        'cost':{'freq':1}      # frequency of sampling
+        }
+    
+    # visualise arbitrary parameters at runtime
+    visualise_params = {
+        'logitLayer' + '_weights': {
+            'freq':1,
+            'x': classifier.w.get_value(borrow=True).ravel()
+        },
+        'logitLayer' + '_hbias': {
+            'freq':1,
+            'x':classifier.b.get_value(borrow=True).ravel()
+        }
+    }
+    
+    param_man = utils.visualise.Visualise_Runtime(
+        plot_dir=PLOT_DIR,
+        data_dir=DATA_DIR
+    )
+    param_man.initalise(
+        run_id = MODEL_ID,
+        default_freq = min(n_train_batches, patience // 2),
+        params = visualise_params,
+        cost = visualise_cost,
+        imgs = visualise_weights
+        )
+    
     logger.info('Training the model ...')
     utils.training.train(classifier, train_model, validate_model, test_model,
         n_train_batches, n_valid_batches, n_test_batches,
         n_epochs, learning_rate,
-        patience, patience_increase, improvement_threshold, 
-        MODEL, MODEL_ID, logger)
-        
+        patience, patience_increase, improvement_threshold,
+        MODEL, MODEL_ID, logger,
+        visualise=param_man
+    )
     logger.info('Testing the model ...')
-    common.predict(MODEL, source, logger)
+    common.predict(os.path.join(MODEL, MODEL_ID + ".pkl"), source, logger)
     pass

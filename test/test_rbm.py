@@ -25,119 +25,42 @@ __doc__ =     """
     :param n_chains: number of parallel Gibbs chains to be used for sampling
     :param n_samples: number of samples to plot for each chain
     
-    The trained RBM can be used for sampling by sharing weights with an MLP + logit
-    output layer. This structure contained as a subset of the dbn module and not 
-    tested here.
+    The trained RBM can be used for sampling by sharing weights with a
+    n MLP + logit output layer. This structure contained as a subset of the
+     dbn module and not tested here.
     """
-
-logger = utils.logs.get_logger(__name__, update_stream_level=utils.logs.logging.INFO)
 
 # Save locations
 ## built model
 MODEL = data.model_dir
 MODEL_ID = os.path.splitext(os.path.basename(__file__))[0]
 
-def mkdir(d, logger):
-    """Changes directory to location and creates location if not in existence
-    
-    :param d: directory path
-    :param logger: logger class
-    """
-    if not os.path.isdir(d): # create directory to store data and cd to it
-        logger.debug('creating directory: {}'.format(d))
-        os.makedirs(d)
-    pass
-def trainModel(train_set_x, n_hidden, learning_rate, training_epochs, batch_size, np_rng, plot_loc=None, model_loc=MODEL, model_id=MODEL_ID, logger=logger):
-    """Builds the model"""
-    
-    full_model_path = os.path.join(
-        data.model_dir,
-        model_id + '.pkl'
-    )
-    
-    logger.info('Building model ...')
-    
-    theano_rng = T.shared_randomstreams.RandomStreams(np_rng.randint(2 ** 30))
-    
-    # construct the RBM class
-    rbm_model = RBM(
-        inputs=x,
-        n_visible=28 * 28,
-        n_hidden=n_hidden,
-        np_rng=np_rng,
-        theano_rng=theano_rng
-    )
-    
-    # initialize storage for the persistent chain (state = hidden layer of chain)
-    persistent_chain = theano.shared(
-        np.zeros((batch_size, n_hidden),
-            dtype=theano.config.floatX),
-        borrow=True)
-    
-    # get the cost and the gradient corresponding to one step of CD-15
-    cost, updates = rbm_model.getCostUpdates(lr=learning_rate,
-         persistent=persistent_chain, k=15)
-    
-    # it is ok for a theano function to have no output
-    # the purpose of train_model is solely to update the RBM parameters
-    logger.debug('building training model')
-    train_model = theano.function(
-        inputs=[index],
-        outputs=cost,
-        updates=updates,
-        givens={x: train_set_x[index * batch_size: (index + 1) * batch_size]}
-    )
-     
-    if plot_loc: # append '_%d.png' % epoch to this
-         base_name = os.path.join(plot_loc, model_id + '_filters')
-    
-    logger.info('Training model ...')
-    plotting_time = 0.
-    epoch_time = 0.
-    start_time = timeit.default_timer()
-    
-    # go through training epochs
-    for epoch in range(training_epochs):
-        # go through the training set
-        epoch_start = timeit.default_timer()
-        mean_cost = [train_model(batch_index) 
-            for batch_index in range(n_train_batches)]
-        epoch_end = timeit.default_timer()
-        epoch_time_i = epoch_end - epoch_start
-        epoch_time += epoch_time_i
-        logger.debug('epoch {}, cost is {}, time {}s'.format(
-            epoch, np.mean(mean_cost), epoch_time_i))
-        
-        # Plot filters after each training epoch
-        if plot_loc:
-            logger.debug('plotting image of weights ...')
-            plotting_start = timeit.default_timer()
-        
-            image = Image.fromarray( # Construct image from the weight matrix
-                utils.visualise.tileRasterImages(
-                    x=rbm_model.w.get_value(borrow=True).T,
-                    img_shape=(28, 28),
-                    tile_shape=(10, 10),
-                    tile_spacing=(1, 1)
-                )
-            )
-            image.save(base_name + '_epoch_{:04d}.png'.format(epoch))
-            plotting_end = timeit.default_timer()
-            plotting_time_i = plotting_end - plotting_start
-            plotting_time += plotting_time_i
-            logger.debug('plotting time: {}s'.format(epoch_time_i, plotting_time_i))
-    
-    end_time = timeit.default_timer()
-    pretraining_time = end_time - start_time # - plotting_time
-    logger.info('Training took %f minutes' % (pretraining_time / 60.))
-    if plot_loc: logger.debug('plotting took %f minutes' % (plotting_time / 60.))
-    logger.debug('epochs took %f minutes' % (epoch_time / 60.))
-    
-    with open(full_model_path, 'wb') as f: pickle.dump(rbm_model, f)
-    logger.debug('saved model as: {}'.format(model_loc))
-    
-    return rbm_model
-def sampleModel(rbm_model, test_set_x,  n_chains, n_samples, rng, save_loc, logger=logger):
+## visualising runtime parameters
+DATA_DIR = data.data_dir
+PLOT_DIR = data.plot_dir
+
+# Model parameters
+n_hidden    = 500
+n_in        = 28*28
+k           = 15
+
+## training parameters
+n_epochs        = 15
+batch_size      = 20
+learning_rate   = 0.1
+
+## early-stopping parameters
+patience                = 30000 # look as this many examples regardless
+patience_increase       = 2     # wait this much longer if new best is found
+improvement_threshold   = 0.995 # consider this improvement significant
+
+# sampling parameters
+n_chains = 10       # number of chains (horizontal axis)
+n_samples = 10      # number of samples (vertical axis)
+plot_every = 1000   # sep due to correlation of samples
+sample_fname = 'samples.png'
+
+def sampleModel(rbm_model, test_set_x,  n_chains, n_samples, np_rng, save_loc, logger):
     """Samples from the RBM"""
     
     logger.info('Sampling from RBM ...')
@@ -154,11 +77,13 @@ def sampleModel(rbm_model, test_set_x,  n_chains, n_samples, rng, save_loc, logg
     )
     
     # define one step of Gibbs sampling (mf = mean-field) define a
-    # function that does `plot_every` steps before returning the sample for plotting
+    # function that does `plot_every` steps before returning the sample
+    # for plotting
     logger.debug('building Gibbs VHV')
     (
         [
-            presig_hids, hid_mfs, hid_samples, presig_vis, vis_mfs, vis_samples
+            presig_hids, hid_mfs, hid_samples, 
+            presig_vis, vis_mfs, vis_samples
         ], 
         updates
     ) = theano.scan(
@@ -182,14 +107,17 @@ def sampleModel(rbm_model, test_set_x,  n_chains, n_samples, rng, save_loc, logg
     logger.info('Plotting samples ...')
     # create a space to store the image for plotting ( we need to leave
     # room for the tile_spacing as well)
-    image_data = np.zeros((29 * n_samples + 1, 29 * n_chains - 1), dtype='uint8')
+    image_data = np.zeros((29 * n_samples + 1, 29 * n_chains - 1),
+         dtype='uint8')
     
     for idx in range(n_samples):
         # generate `plot_every` intermediate samples that we discard,
         # because successive samples in the chain are too correlated
         vis_mf, vis_sample = sample_fn()
         logger.debug('plotting sample %d' % idx)
-        image_data[29 * idx:29 * idx + 28, :] = utils.visualise.tileRasterImages(
+        image_data[
+            (28+1)*idx:(28+1)*idx+28, :
+        ] = utils.visualise.tileRasterImages(
             x=vis_mf,
             img_shape=(28, 28),
             tile_shape=(1, n_chains),
@@ -200,25 +128,12 @@ def sampleModel(rbm_model, test_set_x,  n_chains, n_samples, rng, save_loc, logg
     logger.info('Plotting sample image ...')
     image = Image.fromarray(image_data)
     image.save(save_loc)
+    logger.info('Saved to: {}'.format(save_loc))
     pass
 
 if __name__ == "__main__":
-    # make directory for storing data
-    output_dir = data.plot_dir
-    mkdir(output_dir, logger)
-    
-    # Model parameters
-    learning_rate = 0.1
-    training_epochs = 15
-    batch_size = 20
-    n_hidden = 500
-    
-    # sampling parameters
-    n_chains = 10       # number of chains (horizontal axis)
-    n_samples = 10      # number of samples (vertical axis)
-    plot_every = 1000   # sep due to correlation of samples
-    sample_fname = 'samples.png'
-    
+    logger = utils.logs.get_logger(__name__, 
+        update_stream_level=utils.logs.logging.DEBUG)
     logger.info('Loading data ...')
     source = data.Load_Data()
     
@@ -228,24 +143,101 @@ if __name__ == "__main__":
     test_set_x, test_set_y = datasets[2]
     
     # compute number of minibatches for training, validation and testing
-    n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0]//batch_size
     
     logger.info('Building the model ...')
     # allocate symbolic variables for the data
     index = T.lscalar()     # index to a [mini]batch
     x = T.matrix('x')       # the data is presented as rasterized images
-    y = T.ivector('y')  # the labels are presented as 1D vector of [int] labels
+    y = T.ivector('y')      # the labels are presented as 1D vector of [int]
+                            # labels
     
+    logger.info('Building model ...')
     np_rng = np.random.RandomState(123)
+    theano_rng = T.shared_randomstreams.RandomStreams(np_rng.randint(2 ** 30))
     
-    rbm_model = trainModel( # build and train the model
-        train_set_x,
-        n_hidden,
-        learning_rate,
-        training_epochs,
-        batch_size,
-        np_rng,
-        plot_loc = output_dir
+    # construct the RBM class
+    rbm_model = RBM(
+        inputs=x,
+        n_visible=n_in,
+        n_hidden=n_hidden,
+        np_rng=np_rng,
+        theano_rng=theano_rng
+    )
+    
+    # initialize storage for the persistent chain (state = hidden layer of chain)
+    persistent_chain = theano.shared(
+        np.zeros((batch_size, n_hidden),
+            dtype=theano.config.floatX),
+        borrow=True)
+    
+    # get the cost and the gradient corresponding to one step of CD-15
+    cost, updates = rbm_model.getCostUpdates(lr=learning_rate,
+         persistent=persistent_chain, k=k)
+    
+    # it is ok for a theano function to have no output
+    # the purpose of train_model is solely to update the RBM parameters
+    logger.debug('building training model')
+    train_model = theano.function(
+        inputs=[index],
+        outputs=cost,
+        updates=updates,
+        givens={x: train_set_x[index * batch_size: (index + 1) * batch_size]}
+    )
+    
+    logger.info('Training model ...')
+    
+    # Visualise these items during training
+    visualise_weights = {       # dict of images to create
+        'inputLayer' + '_weights': {    # input - hiddenlayer image
+            'x':rbm_model.w.get_value(
+                borrow=True).T,         # the parameter
+            'img_shape':(28, 28),       # prod. of tuple == # input nodes
+            'tile_shape':(15, 30),      # Max number is # nodes in next layer
+            'tile_spacing':(1, 1),      # separate imgs x,y
+            'runtime_plots': True
+        }
+    }
+    
+    # visualise cost during runtime
+    visualise_cost = {      # visualising the cost
+        'cost':{'freq':1}      # frequency of sampling
+        }
+    
+    # visualise arbitrary parameters at runtime
+    visualise_params = {
+        'hiddenLayer' + '_weights': {
+            'freq':1,
+            'x':rbm_model.w.get_value(borrow=True).ravel()
+        },
+        'hiddenLayer' + '_hbias': {
+            'freq':1,
+            'x': rbm_model.hbias.get_value(borrow=True).ravel()
+        },
+        'hiddenLayer' + '_vbias': {
+            'freq':1,
+            'x': rbm_model.vbias.get_value(borrow=True).ravel()
+        }
+    }
+    
+    param_man = utils.visualise.Visualise_Runtime(
+        plot_dir=PLOT_DIR,
+        data_dir=DATA_DIR
+    )
+    param_man.initalise(
+        run_id = MODEL_ID,
+        default_freq = min(n_train_batches, patience//2),
+        params = visualise_params,
+        cost = visualise_cost,
+        imgs = visualise_weights
+        )
+    
+    utils.training.train(rbm_model, train_model, None, None,
+        n_train_batches, None, None,
+        n_epochs, learning_rate,
+        patience, patience_increase, improvement_threshold,
+        MODEL, MODEL_ID, logger,
+        visualise=param_man
     )
     
     sampleModel( # sample from the trained model
@@ -254,7 +246,7 @@ if __name__ == "__main__":
         n_chains,
         n_samples,
         np_rng,
-        save_loc = os.path.join(output_dir, sample_fname)
+        save_loc = os.path.join(PLOT_DIR, '_'.join([MODEL_ID,sample_fname])),
+        logger=logger
     )
-    
     pass

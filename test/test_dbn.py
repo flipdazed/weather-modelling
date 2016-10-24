@@ -57,10 +57,10 @@ training_epochs     = 1000
 batch_size          = 10
 
 # early-stopping parameters
-patience                = 40    # look as this many examples regardless
+patience                = 20000 # look as this many examples regardless
 patience_increase       = 2     # wait this much longer if new best found
 improvement_threshold   = 0.995 # consider this improvement significant
-pretrain_vis_freq = patience*4
+pretrain_vis_freq = 200
 finetrain_vis_freq = 1
 
 if __name__ == '__main__':
@@ -221,7 +221,8 @@ if __name__ == '__main__':
             'x':dbn.sigmoid_layers[0].w.get_value(
                 borrow=True).T,         # the parameter
             'img_shape':(28, 28),       # prod. of tuple == # input nodes
-            'tile_shape':(25, 25),      # Max number is # nodes in next layer
+            'tile_shape':(15, 30),      # Max number is # nodes in next layer
+            'runtime_plots':True
         },
         'logitLayer' + '_weights': {    # hidden - logistic layer
             'x':dbn.logitLayer.w.get_value(borrow=True).T,

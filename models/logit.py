@@ -75,7 +75,9 @@ class Logistic_Regression(object):
         
         .. math::
         
-            \frac{1}{|\mathcal{D}|} \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) =
+            \frac{1}{|\mathcal{D}|} \mathcal{L} 
+                (\theta=\{W,b\}, \mathcal{D}) 
+            =
             \frac{1}{|\mathcal{D}|} \sum_{i=0}^{|\mathcal{D}|}
                 \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
             \ell (\theta=\{W,b\}, \mathcal{D})
