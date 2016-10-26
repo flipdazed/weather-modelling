@@ -172,7 +172,7 @@ if __name__ == "__main__":
         borrow=True)
     
     # get the cost and the gradient corresponding to one step of CD-15
-    cost, updates = rbm_model.getCostUpdates(lr=learning_rate,
+    cost, updates, gparams = rbm_model.getCostUpdates(lr=learning_rate,
          persistent=persistent_chain, k=k)
     
     # it is ok for a theano function to have no output
@@ -180,7 +180,7 @@ if __name__ == "__main__":
     logger.debug('building training model')
     train_model = theano.function(
         inputs=[index],
-        outputs=cost,
+        outputs=[cost] + gparams,
         updates=updates,
         givens={x: train_set_x[index * batch_size: (index + 1) * batch_size]}
     )
@@ -190,8 +190,7 @@ if __name__ == "__main__":
     # Visualise these items during training
     visualise_weights = {       # dict of images to create
         'inputLayer' + '_weights': {    # input - hiddenlayer image
-            'x':rbm_model.w.get_value(
-                borrow=True).T,         # the parameter
+            'x':rbm_model.w,            # the parameter
             'img_shape':(28, 28),       # prod. of tuple == # input nodes
             'tile_shape':(15, 30),      # Max number is # nodes in next layer
             'tile_spacing':(1, 1),      # separate imgs x,y
@@ -209,15 +208,30 @@ if __name__ == "__main__":
     visualise_params = {
         'hiddenLayer' + '_weights': {
             'freq':1,
-            'x':rbm_model.w.get_value(borrow=True).ravel()
+            'x':rbm_model.w
         },
         'hiddenLayer' + '_hbias': {
             'freq':1,
-            'x': rbm_model.hbias.get_value(borrow=True).ravel()
+            'x': rbm_model.hbias
         },
         'hiddenLayer' + '_vbias': {
             'freq':1,
-            'x': rbm_model.vbias.get_value(borrow=True).ravel()
+            'x': rbm_model.vbias
+        }
+    }
+    
+    visualise_updates = {
+        'hiddenLayer' + '_weights': {
+            'update_position':0,
+            'freq':1
+        },
+        'hiddenLayer' + '_hbias': {
+            'update_position':1,
+            'freq':1
+        },
+        'hiddenLayer' + '_vbias': {
+            'update_position':2,
+            'freq':1
         }
     }
     
@@ -230,7 +244,8 @@ if __name__ == "__main__":
         default_freq = min(n_train_batches, patience//2),
         params = visualise_params,
         cost = visualise_cost,
-        imgs = visualise_weights
+        imgs = visualise_weights,
+        updates = visualise_updates
         )
     
     utils.training.train(rbm_model, train_model, None, None,

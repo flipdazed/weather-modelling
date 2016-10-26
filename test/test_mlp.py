@@ -28,7 +28,7 @@ n_out       = 10
 ## training parameters
 n_epochs        = 1000
 batch_size      = 20
-learning_rate   = 0.1
+learning_rate   = 0.01
 l1_reg          = 0.0
 L2_reg          = 0.0001
 

@@ -228,15 +228,14 @@ class RBM(object):
         cost = T.mean(self.freeEnergy(self.inputs)) - T.mean(
             self.freeEnergy(chain_end))
         # We must not compute the gradient through the gibbs sampling
-        gparams = T.grad(cost, self.params, consider_constant=[chain_end])
+        gparams = T.grad(cost, 
+            self.params, consider_constant=[chain_end])
         
         # constructs the update dictionary
         for gparam, param in zip(gparams, self.params):
             # make sure that the learning rate is of the right dtype
             updates[param] = param - gparam * T.cast(
-                lr,
-                dtype=theano.config.floatX
-            )
+                lr, dtype=theano.config.floatX)
         if persistent:
             # Note that this works only if persistent is a shared variable
             updates[persistent] = nh_samples[-1]
@@ -249,7 +248,7 @@ class RBM(object):
                 pre_sigmoid_nvs[-1]
             )
         
-        return monitoring_cost, updates
+        return monitoring_cost, updates, gparams
         # end-snippet-4
     def getPseudoLikelihoodCost(self, updates):
         """Stochastic approximation to the pseudo-likelihood"""
