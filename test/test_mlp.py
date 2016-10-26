@@ -133,15 +133,14 @@ if __name__ == "__main__":
     # Visualise these items during training
     visualise_weights = {       # dict of images to create
         'inputLayer' + '_weights': {    # input - hiddenlayer image
-            'x':classifier.hiddenLayer.w.get_value(
-                borrow=True).T,         # the parameter
+            'x':classifier.hiddenLayer.w,         # the parameter
             'img_shape':(28, 28),       # prod. of tuple == # input nodes
             'tile_shape':(10, 10),      # Max number is # nodes in next layer
             'tile_spacing':(1, 1)       # separate imgs x,y
             ,'runtime_plots':True
         },
         'logitLayer' + '_weights': {    # hidden - logistic layer
-            'x':classifier.logitLayer.w.get_value(borrow=True).T,
+            'x':classifier.logitLayer.w,
             'img_shape':(25, 25),       # prod. of tuple == # hidden nodes
             'tile_shape':(2, 10),
             'tile_spacing':(1, 1)
@@ -157,19 +156,19 @@ if __name__ == "__main__":
     visualise_params = {
         'hiddenLayer' + '_weights': {
             'freq':1,
-            'x': classifier.hiddenLayer.w.get_value(borrow=True).ravel()
+            'x': classifier.hiddenLayer.w
         },
         'hiddenLayer' + '_bias': {
             'freq':1,
-            'x': classifier.hiddenLayer.b.get_value(borrow=True).ravel()
+            'x': classifier.hiddenLayer.b
         },
         'logitLayer' + '_weights': {
             'freq':1,
-            'x': classifier.logitLayer.w.get_value(borrow=True).ravel()
+            'x': classifier.logitLayer.w
         },
         'logitLayer' + '_bias': {
             'freq':1,
-            'x': classifier.logitLayer.b.get_value(borrow=True).ravel()
+            'x': classifier.logitLayer.b
         }
     }
     

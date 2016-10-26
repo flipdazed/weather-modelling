@@ -4,6 +4,7 @@ import numpy as np
 try: import PIL.Image as Image
 except ImportError: import Image
 import cPickle as pkl
+import theano.tensor as T
 
 import logs
 
@@ -135,7 +136,7 @@ class Visualise_Runtime(object):
         # save the parameters
         for n, params in self.params.iteritems():
             if (i+1) % params['settings']['freq'] == 0:
-                v = np.mean(params['settings']['x'])
+                v = np.mean(params['settings']['x'].get_value(borrow=True))
                 self.params[n]['data'].append(v)
         
         # save the cost
@@ -423,6 +424,12 @@ def tileRasterImages(x, img_shape, tile_shape, tile_spacing=(0, 0), scale_rows_t
     assert len(img_shape) == 2
     assert len(tile_shape) == 2
     assert len(tile_spacing) == 2
+    
+    if not isinstance(x, np.ndarray):
+        if hasattr(x, 'get_value'):
+            x = x.get_value(borrow=True).T
+        else:
+            raise TypeError('Unknown x-type: {}'.format(type(x)))
     
     out_shape = [
         (ishp + tsp) * tshp - tsp

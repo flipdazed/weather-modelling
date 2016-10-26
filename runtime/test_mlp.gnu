@@ -51,16 +51,6 @@ set terminal qt noraise size 1440,800 font 'Verdana,6'
 
 set multiplot
 
-# --- GRAPH cost
-unset key
-set title "cost vs. training samples" font ",10"
-f = word(cost_files, 1)
-set size (xn/2)*(xs/xn)/x,2*ys/yn/y
-set origin xi/x,(yi+3*ys/yn)/y
-set xlabel "sample" font ",7"
-set ylabel "value" font ",7"
-plot f u (column(0)):1 w l ls 1 lc rgb"blue"
-
 # --- GRAPH input image
 unset key
 set title "input weights" font ",10"
@@ -76,10 +66,22 @@ unset ylabel
 set palette grey
 plot f matrix w image
 
+# --- GRAPH cost
+unset key
+set title "cost vs. training samples" font ",10"
+set tics
+f = word(cost_files, 1)
+set size (xn/2)*(xs/xn)/x,2*ys/yn/y
+set origin xi/x,(yi+3*ys/yn)/y
+set xlabel "sample" font ",7"
+set ylabel "value" font ",7"
+plot f u (column(0)):1 w l ls 1 lc rgb"blue"
+
 set xtics rotate by -45
 # --- GRAPH params per batch
 do for [i=1:words(params_files)] {
     unset key
+    set tics
     p = word(params_names,i*2-1)." ".word(params_names,i*2)
     f = word(params_files, i)
     set title p." vs. training samples" font ",10"
@@ -98,6 +100,7 @@ do for [i=1:words(params_files)] {
     
     set title "freq. of av. ".p font ",10"
     
+    set tics
     set size (xs/xn)/x,(ys/yn)/y
     set origin (xi+(i-1)*(xs/xn))/x,(yi+1*ys/yn)/y
     stats f using 1 nooutput
@@ -120,8 +123,8 @@ do for [i=1:words(updates_files)] {
     p = word(updates_names,i*2-1)." ".word(updates_names,i*2)
     f = word(updates_files, i)
     
-    set title "freq. of av. ".p font ",10"
-    
+    set title "freq. of av. ".p." SGD updates" font ",10"
+    set tics
     set size (xs/xn)/x,(ys/yn)/y
     set origin (xi+(i-1)*(xs/xn))/x,(yi+0*ys/yn)/y
     stats f using 1 nooutput
