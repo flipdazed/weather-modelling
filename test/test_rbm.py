@@ -194,8 +194,7 @@ if __name__ == "__main__":
             'img_shape':(28, 28),       # prod. of tuple == # input nodes
             'tile_shape':(15, 30),      # Max number is # nodes in next layer
             'tile_spacing':(1, 1),      # separate imgs x,y
-            'runtime_plots': True,
-            'freq':50
+            'runtime_plots': True
         }
     }
     

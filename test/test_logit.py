@@ -32,7 +32,7 @@ improvement_threshold   = 0.995 # consider this improvement significant
 
 if __name__ == "__main__":
     logger = utils.logs.get_logger(__name__, 
-        update_stream_level=utils.logs.logging.INFO)
+        update_stream_level=utils.logs.logging.DEBUG)
     logger.info('Loading data ...')
     source = data.Load_Data()
     
@@ -87,14 +87,14 @@ if __name__ == "__main__":
     )
     
     # compute the gradient of cost with respect to theta = (W,b)
-    g_w = T.grad(cost=cost, wrt=classifier.w)
-    g_b = T.grad(cost=cost, wrt=classifier.b)
-    
+    gparams = [T.grad(cost=cost, wrt=param) for param in classifier.params]
     
     # specify how to update the parameters of the model as a list of
     # (variable, update expression) pairs.
-    updates = [(classifier.w, classifier.w - learning_rate * g_w),
-               (classifier.b, classifier.b - learning_rate * g_b)]
+    updates = [
+        (param, param - learning_rate * gparam) 
+        for param, gparam in zip(classifier.params, gparams)
+    ]
     
     # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     logger.debug('building training model')
     train_model = theano.function(
         inputs=[index],
-        outputs=cost,
+        outputs=[cost]+gparams,
         updates=updates,
         givens={
             x: train_set_x[index * batch_size: (index + 1) * batch_size],
@@ -113,11 +113,11 @@ if __name__ == "__main__":
     # Visualise these items during training
     visualise_weights = {       # dict of images to create
         'inputLayer' + '_weights': {    # input - hiddenlayer image
-            'x':classifier.w.get_value(
-                borrow=True).T,         # the parameter
+            'x':classifier.w,         # the parameter
             'img_shape':(28, 28),       # prod. of tuple == # input nodes
             'tile_shape':(2, 5),      # Max number is # nodes in next layer
-            'tile_spacing':(1, 1)       # separate imgs x,y
+            'tile_spacing':(1, 1),      # separate imgs x,y
+            'runtime_plots': True
         }
     }
     
@@ -130,14 +130,24 @@ if __name__ == "__main__":
     visualise_params = {
         'logitLayer' + '_weights': {
             'freq':1,
-            'x': classifier.w.get_value(borrow=True).ravel()
+            'x': classifier.w
         },
         'logitLayer' + '_hbias': {
             'freq':1,
-            'x':classifier.b.get_value(borrow=True).ravel()
+            'x':classifier.b
         }
     }
     
+    visualise_updates = {
+        'logitLayer' + '_weights': {
+            'update_position':0,
+            'freq':1
+        },
+        'logitLayer' + '_bias': {
+            'update_position':1,
+            'freq':1
+        }
+    }
     param_man = utils.visualise.Visualise_Runtime(
         plot_dir=PLOT_DIR,
         data_dir=DATA_DIR
@@ -147,7 +157,8 @@ if __name__ == "__main__":
         default_freq = min(n_train_batches, patience // 2),
         params = visualise_params,
         cost = visualise_cost,
-        imgs = visualise_weights
+        imgs = visualise_weights,
+        updates = visualise_updates
         )
     
     logger.info('Training the model ...')
