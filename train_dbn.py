@@ -26,21 +26,21 @@ MODEL_ID = os.path.splitext(os.path.basename(__file__))[0]
 
 # network parameters
 n_ins               = 10092
-hidden_layer_sizes  = [15000, 15000, 15000]
+hidden_layer_sizes  = [1000, 1000, 1000]
 n_outs              = 2
 
 # pre-training
-k                   = 1     # number of Gibbs steps in CD/PCD
+k                   = 5     # number of Gibbs steps in CD/PCD
 pretraining_epochs  = 100
 pretrain_lr         = 0.01
 
 # training (fine-tuning)
 finetune_lr         = 0.1
 training_epochs     = 1000
-batch_size          = 10
+batch_size          = 20
 
 # early-stopping parameters
-patience                = 40    # look as this many examples regardless
+patience                = 2000  # look as this many examples regardless
 patience_increase       = 2     # wait this much longer if new best found
 improvement_threshold   = 0.995 # consider this improvement significant
 
@@ -56,8 +56,8 @@ if __name__ == '__main__':
     test_set_x, test_set_y = datasets[2]
     
     # compute number of minibatches for training, validation and testing
-    n_train_batches = train_set_x.get_value(borrow=True).shape[0] // batch_size
-    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] // batch_size
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0]// batch_size
+    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]// batch_size
     n_test_batches = test_set_x.get_value(borrow=True).shape[0] // batch_size
     
     # np random generator

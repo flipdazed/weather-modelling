@@ -1,4 +1,4 @@
-import os
+import os, sys
 
 import numpy as np
 try: import PIL.Image as Image
@@ -56,8 +56,13 @@ class Visualise_Runtime(object):
         
         ## The cost data
         self.cost = {}
-        self.attrs = [self.params, self.cost, self.imgs]
-        self.attr_names = ['params', 'cost', 'imgs']
+        
+        ## the updates data
+        self.updates = {}
+        
+        self.attrs = [self.params, self.cost, self.imgs, self.updates]
+        self.attr_names = ['params', 'cost', 'imgs', 'updates']
+        self.attr_dirs = [self.data_dir]*2 + [self.plot_dir, self.data_dir]
         
         # set the extension type
         self.data_ext = data_ext
@@ -67,7 +72,7 @@ class Visualise_Runtime(object):
         self.runtime_files = {}
         self.runtime_files_error = False
         pass
-    def initalise(self, run_id, default_freq, params=False, cost=False, imgs=False):
+    def initalise(self, run_id, default_freq, params=False, cost=False, imgs=False, updates=False):
         """
         
         :type run_id: str
@@ -83,10 +88,10 @@ class Visualise_Runtime(object):
         
         # iterate through cost, imgs, params settings
         for input_attr, attr, attr_name, save_dir in zip(
-            [params, cost, imgs],
+            [params, cost, imgs, updates],
             self.attrs,
             self.attr_names,
-            [self.data_dir, self.data_dir, self.plot_dir]
+            self.attr_dirs
         ):
             if input_attr: # only run if the attr is passed into the func
                 for n, attr_settings in input_attr.iteritems():
@@ -133,13 +138,41 @@ class Visualise_Runtime(object):
                 v = np.mean(params['settings']['x'])
                 self.params[n]['data'].append(v)
         
-        # save the cost / others
-        for n, v in runtime_only_values.iteritems():
-            attr = getattr(self, n)
-            if attr: # only append if we set it up!
-                if (i+1) % attr[n]['settings']['freq'] == 0:
-                    attr[n]['data'].append(v)
+        # save the cost
+        if self.cost and ('cost' in runtime_only_values):
+            n = 'cost'
+            v = runtime_only_values[n]
+            if (i+1) % self.cost[n]['settings']['freq'] == 0:
+                self.cost[n]['data'].append(v)
         
+        # save the updates
+        if self.updates and ('updates' in runtime_only_values):
+            n = 'updates'
+            v = runtime_only_values[n]
+            
+            # error handling if the training func is not properly set up
+            if v is None:
+                self.logger.error('Updates specified but training '
+                    'function needs a list output:')
+                self.logger.error('\toutputs = [cost] + gradients')
+                self.logger.error('... where gradients is a list of'
+                    ' T.tensors')
+                raise ValueError('Correct Training function!')
+            
+            # iterate through the update param names
+            # and extract the relevant order from settings
+            for n, settings in self.updates.iteritems():
+                
+                if (i+1) % settings['settings']['freq'] == 0:
+                    
+                    # pull the update order index
+                    # which is the expected position in the list
+                    # of updates being received as an argument
+                    idx = settings['settings']['update_position']
+                    
+                    # append the relevant update using the idx
+                    # mean must be taken as above with params
+                    self.updates[n]['data'].append(np.mean(v[idx]))
         pass
     def writeRuntimeValues(self, i, clean_files = False):
         """Creates file objects to write to for cost and params
@@ -154,9 +187,16 @@ class Visualise_Runtime(object):
                 save_loc = settings['settings']['save_path']+'.dat'
                 data = settings['data'][-1]
                 with open(save_loc, write_type) as f:
-                    f.write('{0:10.4e}\n'.format(data))
+                    f.write('{0:12.6e}\n'.format(data))
         
         for param_name, settings in self.params.iteritems():
+            if (i+1) % settings['settings']['freq'] == 0:
+                save_loc = settings['settings']['save_path']+'.dat'
+                data = settings['data'][-1]
+                with open(save_loc, write_type) as f:
+                    f.write('{0:12.6e}\n'.format(data))
+        
+        for param_name, settings in self.updates.iteritems():
             if (i+1) % settings['settings']['freq'] == 0:
                 save_loc = settings['settings']['save_path']+'.dat'
                 data = settings['data'][-1]
@@ -171,12 +211,12 @@ class Visualise_Runtime(object):
                 save_loc = settings['settings']['save_path']+'.dat'
                 data = settings['data'][-1]
                 np.savetxt(save_loc, data, fmt='%03d')
-        
         pass
     def saveValues(self):
         """save all the recorded values"""
         if self.cost: self.saveCost()
         if self.params: self.saveParams()
+        if self.updates: self.saveUpdates()
         if self.imgs: self.saveImgs()
         pass
     def saveImgs(self, param_name=None, erase = False):
@@ -251,20 +291,50 @@ class Visualise_Runtime(object):
             :param erase: Optional. Default `False`. When `True` the data 
                 holder is emptied / erased after the data is written to file.
         """
+        source = self.params
         
         if param_name is None: # iterate all parameters in dict
             self.logger.info('Saving all Parameters ...')
-            for param_name, settings in self.params.iteritems():
+            for param_name, settings in source.iteritems():
+                save_path = settings['settings']['save_path']
+                self._dumpMethod(settings['data'], save_path)
+                if erase: source[param_name] = []
+                    
+        else:                   # only save the specified paramter
+            self.logger.info('Saving Parameter: {} ...'.format(param_name))
+            settings = source[param_name]
+            save_path = settings['settings']['save_path']
+            self._dumpMethod(settings['data'], save_path)
+            if erase: source[param_name]['data'] = []
+        pass
+    def saveUpdates(self, param_name = None, erase = False):
+        """Saves the parameters to file iteratively. The dictionary of
+        parameters is specified by `self.params[param_name]`
+            
+            :type param_name: str
+            :param param_name: Optional. Default is `None`. When `None` all
+                parameters are saved. When `param_name` is specified as a key
+                entry to `self.params`, only that parameter will be affected.
+            
+            :type erase: bool
+            :param erase: Optional. Default `False`. When `True` the data 
+                holder is emptied / erased after the data is written to file.
+        """
+        source = self.updates
+        
+        if param_name is None: # iterate all parameters in dict
+            self.logger.info('Saving all Updates ...')
+            for param_name, settings in source.iteritems():
                 save_path = settings['settings']['save_path']
                 self._dumpMethod(settings['data'], save_path)
                 if erase: self.params[param_name] = []
                     
         else:                   # only save the specified paramter
-            self.logger.info('Saving Parameter: {} ...'.format(param_name))
-            settings = self.params[param_name]
+            self.logger.info('Saving Update: {} ...'.format(param_name))
+            settings = source[param_name]
             save_path = settings['settings']['save_path']
             self._dumpMethod(settings['data'], save_path)
-            if erase: self.params[param_name]['data'] = []
+            if erase: source[param_name]['data'] = []
         pass
     def _dumpMethod(self, data, full_path_without_extension):
         """The method that data is dumped defined in one place.

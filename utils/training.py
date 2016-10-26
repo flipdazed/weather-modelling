@@ -107,7 +107,12 @@ def train(classifier,
     
     if 'visualise' in kwargs:
         param_man = kwargs['visualise']
-        param_man.getValues(i = -1, cost = np.nan)
+        param_man.getValues(
+            i = -1, # -1 because print at (i+1) % freq
+            cost = np.nan,
+            # fill with np.nan for each update that is expected
+            updates = [np.nan]*len(param_man.updates.keys())
+        )
         param_man.writeRuntimeValues(i= -1, clean_files = True)
     else:
         param_man = None
@@ -121,8 +126,18 @@ def train(classifier,
             epoch_start_i = timeit.default_timer()
             minibatch_avg_costs = []
             for minibatch_index in range(n_train_batches):
-                minibatch_avg_cost = train_model(minibatch_index)
-                minibatch_avg_costs.append(minibatch_avg_cost)
+                result = train_model(minibatch_index)
+                
+                if type(result) == list:
+                    # accomodates return of gparams in result
+                    minibatch_avg_cost = result.pop(0)
+                    minibatch_avg_costs.append(minibatch_avg_cost)
+                    updates = [(g*learning_rate).mean() for g in result]
+                else:
+                    # no gparams in result
+                    minibatch_avg_cost = result
+                    minibatch_avg_costs.append(minibatch_avg_cost)
+                    updates = None
                 
                 # iteration number
                 i = (epoch - 1) * n_train_batches + minibatch_index
@@ -177,7 +192,8 @@ def train(classifier,
                 if param_man:
                     param_man.getValues(
                         i = i,
-                        cost = np.mean(minibatch_avg_costs)
+                        cost = np.mean(minibatch_avg_costs),
+                        updates = updates
                     )
                     param_man.writeRuntimeValues(i=i)
                 

@@ -20,8 +20,8 @@ class Hidden_Layer(object):
     def __init__(self, rng, inputs, n_in, n_out, w=None, b=None,activation=T.tanh):
         """Initialisation of the Hidden Layer
         Typical hidden layer of a MLP: units are fully-connected and have
-        sigmoidal activation function. Weight matrix W is of shape (n_in,n_out)
-        and the bias vector b is of shape (n_out,).
+        sigmoidal activation function. Weight matrix W is of shape
+         (n_in,n_out) and the bias vector b is of shape (n_out,).
         
         NOTE : The nonlinearity used here is tanh
         
@@ -180,7 +180,7 @@ class MLP(object):
         self.y_pred = self.logitLayer.y_pred
         self.p_y_given_x = self.logitLayer.p_y_given_x
         
-        # the parameters of the model are the parameters of the two layer it is
-        # made out of
+        # the parameters of the model are the parameters of the two layer it
+        # is made out of
         self.params = self.hiddenLayer.params + self.logitLayer.params
         pass

@@ -43,18 +43,18 @@ n_out       = 2
 
 ## training parameters
 n_epochs        = 10000
-batch_size      = 50
-learning_rate   = 0.01
+batch_size      = 10
+learning_rate   = 0.02
 l1_reg          = 0.00
 L2_reg          = 0.00
 
 ## early-stopping parameters
-patience                = 10000 # look as this many examples regardless
+patience                = 500000 # look as this many examples regardless
 patience_increase       = 2     # wait this much longer if new best is found
 improvement_threshold   = 0.995 # consider this improvement significant
 
 # sample for plotting
-freq = 50
+freq = 100
 
 if __name__ == "__main__":
     

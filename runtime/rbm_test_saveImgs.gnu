@@ -15,7 +15,8 @@ params_names = system("ls ".base_loc."params_"."*".ext." | sed -e 's#".base_loc.
 hist(x,width)=width*floor(x/width)+width/2.0
 
 ### Start multiplot
-set terminal qt noraise size 1440,800 font 'Verdana,6'
+set terminal png size 1440,800 font 'Verdana,6'
+set output "dump/visual_example_".iter.".png"
 
 set multiplot
 xn=4
@@ -61,9 +62,10 @@ set xtics rotate by -45
 # --- GRAPH params per batch
 do for [i=1:words(params_files)] {
     unset key
+    set tics
     p = word(params_names,i*2-1)." ".word(params_names,i*2)
     f = word(params_files, i)
-    set title p." vs. training samples" font ",10"
+    set title p." vs. training samples" font ",6"
     set size (xs/xn)/x,(ys/yn)/y
     set origin (xi+(i-1)*(xs/xn))/x,(yi+ys/yn)/y
     set xlabel "sample" font ",7"
@@ -74,27 +76,34 @@ do for [i=1:words(params_files)] {
 # --- GRAPH histogram of params
 do for [i=1:words(params_files)] {
     unset key
+    set tics
     p = word(params_names,i*2-1)." ".word(params_names,i*2)
     f = word(params_files, i)
-
-    set title "freq. of av. ".p font ",10"
-
+    
+    set title "freq. of av. ".p font ",6"
+    set tics
     set size (xs/xn)/x,(ys/yn)/y
     set origin (xi+(i-1)*(xs/xn))/x,yi/y
     stats f using 1 nooutput
-
+    
     n=50 #number of intervals
     max=STATS_mean+3*STATS_stddev #max value
     min=STATS_mean-3*STATS_stddev #min value
     width=(max-min)/n #interval width
+    
+    # set boxwidth width*0.9
+    # set style fill solid 0.5
+    set tics
     set xlabel "mean value" font ",7"
     set ylabel "freq" font ",7"
     plot f u (hist($1,width)):(1.0/STATS_records) \
-    smooth freq w l lc rgb"green" notitle
+        smooth freq \
+        w l \
+        lc rgb"green" notitle
 }
 
 unset multiplot
 ### End multiplot
 
-pause 2
-reread
+# pause 1
+# reread

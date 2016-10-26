@@ -28,7 +28,7 @@ n_out       = 10
 ## training parameters
 n_epochs        = 1000
 batch_size      = 20
-learning_rate   = 0.01
+learning_rate   = 0.1
 l1_reg          = 0.0
 L2_reg          = 0.0001
 
@@ -56,9 +56,9 @@ if __name__ == "__main__":
     logger.info('Building the model ...')
     
     # allocate symbolic variables for the data
-    index = T.lscalar()  # index to a [mini]batch
-    x = T.matrix('x')  # the data is presented as rasterized images
-    y = T.ivector('y')  # the labels are presented as 1D vector of [int] labels
+    index = T.lscalar() # index to a [mini]batch
+    x = T.matrix('x')   # data is presented as rasterized images
+    y = T.ivector('y')  # labels are presented as 1D vector of [int] labels
     
     rng = np.random.RandomState(1234)
     
@@ -70,12 +70,6 @@ if __name__ == "__main__":
         n_hidden=n_hidden,
         n_out=n_out
     )
-    
-    # the cost we minimize during training is the negative log likelihood of
-    # the model plus the regularization terms (l1 and L2); cost is expressed
-    # here symbolically
-    cost = (classifier.negativeLogLikelihood(y) + l1_reg*classifier.l1 +
-             L2_reg*classifier.L2_sqr)
     
     # compiling a Theano function that computes the mistakes that are made
     # by the model on a minibatch
@@ -97,6 +91,12 @@ if __name__ == "__main__":
             y: valid_set_y[index * batch_size:(index + 1) * batch_size]
         }
     )
+    
+    # the cost we minimize during training is the negative log likelihood of
+    # the model plus the regularization terms (l1 and L2); cost is expressed
+    # here symbolically
+    cost = (classifier.negativeLogLikelihood(y) + l1_reg*classifier.l1 +
+             L2_reg*classifier.L2_sqr)
     
     # compute the gradient of cost with respect to theta (sorted in params)
     # the resulting gradients will be stored in a list gparams
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     logger.debug('building training model')
     train_model = theano.function(
         inputs=[index],
-        outputs=cost,
+        outputs=[cost] + gparams,
         updates=updates,
         givens={
             x: train_set_x[index * batch_size: (index + 1) * batch_size],
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     visualise_params = {
         'hiddenLayer' + '_weights': {
             'freq':1,
-            'x':classifier.hiddenLayer.w.get_value(borrow=True).ravel()
+            'x': classifier.hiddenLayer.w.get_value(borrow=True).ravel()
         },
         'hiddenLayer' + '_bias': {
             'freq':1,
@@ -169,7 +169,26 @@ if __name__ == "__main__":
         },
         'logitLayer' + '_bias': {
             'freq':1,
-            'x':classifier.logitLayer.b.get_value(borrow=True).ravel()
+            'x': classifier.logitLayer.b.get_value(borrow=True).ravel()
+        }
+    }
+    
+    visualise_updates = {
+        'hiddenLayer' + '_weights': {
+            'update_position':0,
+            'freq':1
+        },
+        'hiddenLayer' + '_bias': {
+            'update_position':1,
+            'freq':1
+        },
+        'logitLayer' + '_weights': {
+            'update_position':2,
+            'freq':1
+        },
+        'logitLayer' + '_bias': {
+            'update_position':3,
+            'freq':1
         }
     }
     
@@ -182,7 +201,8 @@ if __name__ == "__main__":
         default_freq = min(n_train_batches, patience // 2),
         params = visualise_params,
         cost = visualise_cost,
-        imgs = visualise_weights
+        imgs = visualise_weights,
+        updates = visualise_updates
         )
     
     utils.training.train(classifier, train_model, validate_model, test_model,
