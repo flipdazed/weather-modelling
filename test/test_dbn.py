@@ -66,7 +66,7 @@ finetrain_vis_freq = 1
 if __name__ == '__main__':
     
     logger = utils.logs.get_logger(__name__,
-         update_stream_level=utils.logs.logging.INFO)
+         update_stream_level=utils.logs.logging.DEBUG)
     logger.info('Loading data ...')
     source = data.Load_Data()
     
@@ -117,7 +117,11 @@ if __name__ == '__main__':
     logger.info('Pre-training the model ...')
     start_time = timeit.default_timer()
     
-    param_man.getValues(i = -1, cost = np.nan)
+    param_man.getValues(
+            i = -1, # -1 because print at (i+1) % freq
+            cost = np.nan,
+            # fill with np.nan for each update that is expected
+            updates = [np.nan]*len(param_man.updates.keys()))
     param_man.writeRuntimeValues(i = -1, clean_files = True)
     
     for l in range(dbn.n_layers): # Pre-train layer-wise
@@ -129,21 +133,33 @@ if __name__ == '__main__':
             
             new_params = {
                 'hiddenLayer{:02d}'.format(l) + '_weights': {
-                    'x': dbn.sigmoid_layers[l].w.get_value(
-                        borrow=True).ravel(),
+                    'x': dbn.sigmoid_layers[l].w,
                     'freq':pretrain_vis_freq,
                 },
                 'hiddenLayer{:02d}'.format(l) + '_bias': {
-                    'x': dbn.sigmoid_layers[l].b.get_value(
-                        borrow=True).ravel(),
+                    'x': dbn.sigmoid_layers[l].b,
                     'freq':pretrain_vis_freq,
+                }
+            }
+            
+            # the update_position is fixed because we delete 
+            # the current dict at end of loop
+            visualise_updates = {
+                'hiddenLayer{:02d}'.format(l) + '_weights': {
+                    'update_position':0,
+                    'freq':pretrain_vis_freq
+                },
+                'hiddenLayer{:02d}'.format(l) + '_bias': {
+                    'update_position':1,
+                    'freq':pretrain_vis_freq
                 }
             }
             
             param_man.initalise(
                 run_id = MODEL_ID,
                 default_freq = patience,
-                params = new_params
+                params = new_params,
+                updates = visualise_updates
                 )
             
             # go through pretraining epochs 0th epoch is before start
@@ -152,14 +168,29 @@ if __name__ == '__main__':
                 # go through the training set
                 costs = []
                 for minibatch_index in range(n_train_batches):
-                    c = pretraining_fns[l](
+                    result = pretraining_fns[l](
                         index=minibatch_index,
                         lr=pretrain_lr
                     )
-                    costs.append(c)
+                    
+                    if type(result) == list:
+                        # accomodates return of gparams in result
+                        c = result.pop(0)
+                        costs.append(c)
+                        updates = [(g*pretrain_lr).mean() for g in result]
+                    else:
+                        # no gparams in result
+                        c = result
+                        costs.append(c)
+                        updates = None
+                    
                     i = (epoch - 1) * n_train_batches + minibatch_index
                     
-                    param_man.getValues(i = i, cost = np.asscalar(c))
+                    param_man.getValues(
+                        i = i,
+                        cost = np.mean(costs),
+                        updates = updates
+                    )
                     param_man.writeRuntimeValues(i = i)
                 
                 av_cost = np.mean(costs)
@@ -179,6 +210,8 @@ if __name__ == '__main__':
         
         del param_man.params['hiddenLayer{:02d}'.format(l) + '_weights']
         del param_man.params['hiddenLayer{:02d}'.format(l) + '_bias']
+        del param_man.updates['hiddenLayer{:02d}'.format(l) + '_weights']
+        del param_man.updates['hiddenLayer{:02d}'.format(l) + '_bias']
     
     end_time = timeit.default_timer()
     logger.info('The pretraining code for file '
@@ -189,43 +222,58 @@ if __name__ == '__main__':
     
     # visualise cost during runtime
     visualise_cost = {          # visualising the cost
-        'cost':{'freq':finetrain_vis_freq}       # frequency of sampling
+            'cost':{'freq':finetrain_vis_freq}       # frequency of sampling
         }
     
     new_params = {
         'logitLayer' + '_weights': {
-        'x': dbn.logitLayer.w.get_value(borrow=True).ravel(),
-        'freq':finetrain_vis_freq,
+            'x': dbn.logitLayer.w,
+            'freq':finetrain_vis_freq,
         },
         'logitLayer' + '_bias': {
-        'x':dbn.logitLayer.b.get_value(borrow=True).ravel(),
-        'freq':finetrain_vis_freq,
+            'x':dbn.logitLayer.b,
+            'freq':finetrain_vis_freq,
         }
     }
+    visualise_updates = {
+            'logitLayer' + '_weights': {
+                'update_position':dbn.n_layers-2,
+                'freq':finetrain_vis_freq
+            },
+            'logitLayer' + '_bias': {
+                'update_position':dbn.n_layers-1,
+                'freq':finetrain_vis_freq
+            }
+        }
     
     for l in range(dbn.n_layers):
         new_params['hiddenLayer{:02d}'.format(l) + '_weights'] = {
-                'x': dbn.sigmoid_layers[l].w.get_value(
-                    borrow=True).ravel(),
+                'x': dbn.sigmoid_layers[l].w,
                 'freq':finetrain_vis_freq,
             }
         new_params['hiddenLayer{:02d}'.format(l) + '_bias'] = {
-                'x': dbn.sigmoid_layers[l].b.get_value(
-                    borrow=True).ravel(),
+                'x': dbn.sigmoid_layers[l].b,
                 'freq':finetrain_vis_freq,
+            }
+        visualise_updates['hiddenLayer{:02d}'.format(l) + '_weights'] = {
+                'update_position':l*2,
+                'freq':finetrain_vis_freq
+            }
+        visualise_updates['hiddenLayer{:02d}'.format(l) + '_bias'] = {
+                'update_position':l*2+1,
+                'freq':finetrain_vis_freq
             }
     
     # Visualise these items during training
     visualise_weights = {       # dict of images to create
         'hiddenLayer00' + '_weights': {    # input - hiddenlayer image
-            'x':dbn.sigmoid_layers[0].w.get_value(
-                borrow=True).T,         # the parameter
+            'x':dbn.sigmoid_layers[0].w,  # the parameter
             'img_shape':(28, 28),       # prod. of tuple == # input nodes
             'tile_shape':(15, 30),      # Max number is # nodes in next layer
             'runtime_plots':True
         },
         'logitLayer' + '_weights': {    # hidden - logistic layer
-            'x':dbn.logitLayer.w.get_value(borrow=True).T,
+            'x':dbn.logitLayer.w,
             'img_shape':(40, 25),       # prod. of tuple == # hidden nodes
             'tile_shape':(20, 32),
         }
@@ -234,7 +282,7 @@ if __name__ == '__main__':
     # This can only be done as hidden_layer_sizes are all the same
     for i in range(1, dbn.n_layers):
         visualise_weights['hiddenLayer{:02d}'.format(i) + '_weights'] = {
-            'x':dbn.sigmoid_layers[i].w.get_value(borrow=True).T,
+            'x':dbn.sigmoid_layers[i].w,
             'img_shape':(40, 25),
             'tile_shape':(25, 25),
         }
@@ -244,7 +292,8 @@ if __name__ == '__main__':
         default_freq = patience,
         params = new_params,
         imgs = visualise_weights,
-        cost = visualise_cost
+        cost = visualise_cost,
+        updates = visualise_updates
         )
     
     # get the training, validation and testing function for the model

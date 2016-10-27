@@ -174,13 +174,13 @@ class DBN(object):
             # get the cost and the updates list
             # using CD-k here (persisent=None) for training each RBM.
             # TODO: change cost function to reconstruction error
-            cost, updates = rbm.getCostUpdates(learning_rate,
+            cost, updates, gparams = rbm.getCostUpdates(learning_rate,
                  persistent=None, k=k)
             
             # compile the theano function
             fn = theano.function(
                 inputs=[index, theano.In(learning_rate, value=0.1)],
-                outputs=cost,
+                outputs=[cost]+gparams,
                 updates=updates,
                 givens={self.x: train_set_x[batch_begin:batch_end]}
             )
@@ -229,7 +229,7 @@ class DBN(object):
         
         train_fn = theano.function(
             inputs=[index],
-            outputs=self.finetune_cost,
+            outputs=[self.finetune_cost]+gparams,
             updates=updates,
             givens={
                 self.x:train_set_x[index*batch_size:(index+1)*batch_size],
