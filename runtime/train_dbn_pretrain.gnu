@@ -144,8 +144,9 @@ do for [i=1:words(updates_files)] {
     }
 }
 
+
 unset multiplot
 ### End multiplot
 
-pause 10
+pause 2
 reread

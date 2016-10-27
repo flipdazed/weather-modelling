@@ -19,6 +19,7 @@ set terminal png size 1440,800 font 'Verdana,6'
 set output "dump/visual_example_".iter.".png"
 
 set multiplot
+set autoscale x
 xn=4
 yn = 1+1+2
 x = xn

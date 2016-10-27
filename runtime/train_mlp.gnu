@@ -50,6 +50,7 @@ ys = yf-yi
 set terminal qt noraise size 1440,800 font 'Verdana,6'
 
 set multiplot
+set autoscale x
 
 # --- GRAPH input image
 unset key
@@ -112,6 +113,7 @@ do for [i=1:words(params_files)] {
         max=STATS_mean+3*STATS_stddev #max value
         min=STATS_mean-3*STATS_stddev #min value
         width=(max-min)/n #interval width
+        set xrange [min:max]
         
         set style fill solid noborder
         set boxwidth width*0.9
@@ -144,6 +146,7 @@ do for [i=1:words(updates_files)] {
         max=STATS_mean+3*STATS_stddev #max value
         min=STATS_mean-3*STATS_stddev #min value
         width=(max-min)/n #interval width
+        set xrange [min:max]
         
         set style fill solid noborder
         set boxwidth width*0.9

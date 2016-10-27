@@ -9,6 +9,7 @@ ext = ".dat"
 cost_files = system("ls ".base_loc."cost_"."*".ext)
 params_files = system("ls ".base_loc."params_"."*".ext)
 updates_files = system("ls ".base_loc."updates_"."*".ext)
+weight_file = system("ls ".plot_loc."*weights"."*".ext)
 
 # get the string names to label the plots from the filenames using REGEX
 params_names = system("ls ".base_loc."params_"."*".ext." | sed -e 's#".base_loc."params_"."\\(.*\\)\\".ext."#\\1#' -e 's#_# #g'")
@@ -46,16 +47,33 @@ yf = y-o
 ys = yf-yi
 
 ### Start multiplot
-set terminal qt size 1440,800 font 'Verdana,6' noraise
+set terminal qt noraise size 1440,800 font 'Verdana,6'
+
 set multiplot
 set autoscale x
+
+# --- GRAPH input image
+unset key
+unset key
+unset colorbox
+unset tics
+unset xlabel
+unset ylabel
+set size (xn/2)*(xs/xn)/x,2*ys/yn/y
+set origin (xi+(xn/2)*(xs/xn))/x,(yi+3*ys/yn)/y
+set border linewidth 0
+set palette grey
+
+f = word(weight_file, 1)
+set title "input weights" font ",10"
+plot f matrix w image
 
 # --- GRAPH cost
 unset key
 set tics
 f = word(cost_files, 1)
 
-set size xs/x,2*ys/yn/y
+set size xs/2./x,2*ys/yn/y
 set origin xi/x,(yi+3*ys/yn)/y
 
 set title "<cost> vs. training samples" font ",10"

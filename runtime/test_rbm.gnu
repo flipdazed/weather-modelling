@@ -50,6 +50,7 @@ ys = yf-yi
 set terminal qt noraise size 1440,800 font 'Verdana,6'
 
 set multiplot
+set autoscale x
 
 # --- GRAPH input image
 unset key
@@ -83,12 +84,12 @@ set xtics rotate by -45
 # --- GRAPH params per batch
 do for [i=1:words(params_files)] {
     unset key
-    set tics
     p = word(params_names,i*2-1)." ".word(params_names,i*2)
     f = word(params_files, i)
     
     set size (xs/xn)/x,(ys/yn)/y
     set origin (xi+(i-1)*(xs/xn))/x,(yi+2*ys/yn)/y
+    set tics
     
     set title p.", <X_".i.">" font ",10"
     set xlabel "sample" font ",7"
@@ -102,22 +103,30 @@ do for [i=1:words(params_files)] {
     p = word(params_names,i*2-1)." ".word(params_names,i*2)
     f = word(params_files, i)
     
-    set tics
-    set size (xs/xn)/x,(ys/yn)/y
-    set origin (xi+(i-1)*(xs/xn))/x,(yi+1*ys/yn)/y
     stats f using 1 nooutput
-    
-    n=50 #number of intervals
-    max=STATS_mean+3*STATS_stddev #max value
-    min=STATS_mean-3*STATS_stddev #min value
-    width=(max-min)/n #interval width
-    
-    set title "Freq. of <X_".i.">" font ",10"
-    set xlabel "<X_".i.">" font ",7"
-    set ylabel "freq" font ",7"
-    
-    plot f u (hist($1,width)):(1.0/STATS_records) \
-        smooth freq w l lc rgb"green" notitle
+    if (STATS_min != STATS_max){
+        set tics
+        set size (xs/xn)/x,(ys/yn)/y
+        set origin (xi+(i-1)*(xs/xn))/x,(yi+1*ys/yn)/y
+        
+        n=50 #number of intervals
+        max=STATS_mean+3*STATS_stddev #max value
+        min=STATS_mean-3*STATS_stddev #min value
+        width=(max-min)/n #interval width
+        set xrange [min:max]
+        
+        set style fill solid noborder
+        set boxwidth width*0.9
+        
+        set title "Freq. of <X_".i.">" font ",10"
+        set xlabel "<X_".i.">" font ",7"
+        set ylabel "freq" font ",7"
+        
+        plot f u (hist($1,width)):(1.0/STATS_records) \
+            smooth freq w boxes lc rgb"green" notitle
+    } else {
+        print "Values Hist: ".p.": cannot plot... all equal to: ",STATS_min
+    }
 }
 
 # --- GRAPH histogram of learning updates
@@ -126,21 +135,30 @@ do for [i=1:words(updates_files)] {
     p = word(updates_names,i*2-1)." ".word(updates_names,i*2)
     f = word(updates_files, i)
     
-    set tics
-    set size (xs/xn)/x,(ys/yn)/y
-    set origin (xi+(i-1)*(xs/xn))/x,(yi+0*ys/yn)/y
     stats f using 1 nooutput
-    
-    n=50 #number of intervals
-    max=STATS_mean+3*STATS_stddev #max value
-    min=STATS_mean-3*STATS_stddev #min value
-    width=(max-min)/n #interval width
-    
-    set title "Freq. of <-{/Symbol D}X_".i.">" font ",10"
-    set xlabel "<X_".i.">" font ",7"
-    set ylabel "freq" font ",7"
-    plot f u (hist($1,width)):(1.0/STATS_records) \
-        smooth freq w l lc rgb"red" notitle
+    if (STATS_min != STATS_max){
+        
+        set tics
+        set size (xs/xn)/x,(ys/yn)/y
+        set origin (xi+(i-1)*(xs/xn))/x,(yi+0*ys/yn)/y
+        
+        n=50 #number of intervals
+        max=STATS_mean+3*STATS_stddev #max value
+        min=STATS_mean-3*STATS_stddev #min value
+        width=(max-min)/n #interval width
+        set xrange [min:max]
+        
+        set style fill solid noborder
+        set boxwidth width*0.9
+        
+        set title "Freq. of <-{/Symbol D}X_".i.">" font ",10"
+        set xlabel "<X_".i.">" font ",7"
+        set ylabel "freq" font ",7"
+        plot f u (hist($1,width)):(1.0/STATS_records) \
+            smooth freq w boxes lc rgb"red" notitle
+    } else {
+        print "Update Hist: ".p.": cannot plot... all equal to: ",STATS_min
+    }
 }
 
 unset multiplot

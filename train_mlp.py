@@ -49,7 +49,7 @@ l1_reg          = 0.00
 L2_reg          = 0.00
 
 ## early-stopping parameters
-patience                = 500000 # look as this many examples regardless
+patience                = 50000 # look as this many examples regardless
 patience_increase       = 2     # wait this much longer if new best is found
 improvement_threshold   = 0.995 # consider this improvement significant
 
