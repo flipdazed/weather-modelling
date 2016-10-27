@@ -68,27 +68,31 @@ plot f matrix w image
 
 # --- GRAPH cost
 unset key
-set title "cost vs. training samples" font ",10"
 set tics
 f = word(cost_files, 1)
-set size (xn/2)*(xs/xn)/x,2*ys/yn/y
+
+set size xs/2./x,2*ys/yn/y
 set origin xi/x,(yi+3*ys/yn)/y
+
+set title "<cost> vs. training samples" font ",10"
 set xlabel "sample" font ",7"
-set ylabel "value" font ",7"
+set ylabel "<Cost>" font ",7"
 plot f u (column(0)):1 w l ls 1 lc rgb"blue"
 
 set xtics rotate by -45
 # --- GRAPH params per batch
 do for [i=1:words(params_files)] {
     unset key
-    set tics
     p = word(params_names,i*2-1)." ".word(params_names,i*2)
     f = word(params_files, i)
-    set title p." vs. training samples" font ",10"
+    
     set size (xs/xn)/x,(ys/yn)/y
     set origin (xi+(i-1)*(xs/xn))/x,(yi+2*ys/yn)/y
+    set tics
+    
+    set title p.", <X_".i.">" font ",10"
     set xlabel "sample" font ",7"
-    set ylabel "mean value" font ",7"
+    set ylabel "<X_".i.">" font ",7"
     plot f u (column(0)):1 with lines ls 1
 }
 
@@ -98,23 +102,27 @@ do for [i=1:words(params_files)] {
     p = word(params_names,i*2-1)." ".word(params_names,i*2)
     f = word(params_files, i)
     
-    set title "freq. of av. ".p font ",10"
-    
-    set tics
-    set size (xs/xn)/x,(ys/yn)/y
-    set origin (xi+(i-1)*(xs/xn))/x,(yi+1*ys/yn)/y
     stats f using 1 nooutput
+    if (STATS_min != STATS_max){
+        set tics
+        set size (xs/xn)/x,(ys/yn)/y
+        set origin (xi+(i-1)*(xs/xn))/x,(yi+1*ys/yn)/y
+        stats f using 1 nooutput
     
-    n=50 #number of intervals
-    max=STATS_mean+3*STATS_stddev #max value
-    min=STATS_mean-3*STATS_stddev #min value
-    width=(max-min)/n #interval width
+        n=50 #number of intervals
+        max=STATS_mean+3*STATS_stddev #max value
+        min=STATS_mean-3*STATS_stddev #min value
+        width=(max-min)/n #interval width
     
-    set xlabel "mean value" font ",7"
-    set ylabel "freq" font ",7"
+        set title "Freq. of <X_".i.">" font ",10"
+        set xlabel "<X_".i.">" font ",7"
+        set ylabel "freq" font ",7"
     
-    plot f u (hist($1,width)):(1.0/STATS_records) \
-        smooth freq w l lc rgb"green" notitle
+        plot f u (hist($1,width)):(1.0/STATS_records) \
+            smooth freq w l lc rgb"green" notitle
+    } else {
+        print "Values Hist: ".p.": cannot plot... all equal to: ",STATS_min
+    }
 }
 
 # --- GRAPH histogram of learning updates
@@ -123,25 +131,31 @@ do for [i=1:words(updates_files)] {
     p = word(updates_names,i*2-1)." ".word(updates_names,i*2)
     f = word(updates_files, i)
     
-    set title "freq. of av. ".p." SGD updates" font ",10"
-    set tics
-    set size (xs/xn)/x,(ys/yn)/y
-    set origin (xi+(i-1)*(xs/xn))/x,(yi+0*ys/yn)/y
     stats f using 1 nooutput
-    
-    n=50 #number of intervals
-    max=STATS_mean+3*STATS_stddev #max value
-    min=STATS_mean-3*STATS_stddev #min value
-    width=(max-min)/n #interval width
-    
-    set xlabel "mean value" font ",7"
-    set ylabel "freq" font ",7"
-    plot f u (hist($1,width)):(1.0/STATS_records) \
-        smooth freq w l lc rgb"green" notitle
+    if (STATS_min != STATS_max){
+        
+        set tics
+        set size (xs/xn)/x,(ys/yn)/y
+        set origin (xi+(i-1)*(xs/xn))/x,(yi+0*ys/yn)/y
+        stats f using 1 nooutput
+        
+        n=50 #number of intervals
+        max=STATS_mean+3*STATS_stddev #max value
+        min=STATS_mean-3*STATS_stddev #min value
+        width=(max-min)/n #interval width
+        
+        set title "Freq. of <-{/Symbol D}X_".i.">" font ",10"
+        set xlabel "<X_".i.">" font ",7"
+        set ylabel "freq" font ",7"
+        plot f u (hist($1,width)):(1.0/STATS_records) \
+            smooth freq w l lc rgb"red" notitle
+    } else {
+        print "Update Hist: ".p.": cannot plot... all equal to: ",STATS_min
+    }
 }
 
 unset multiplot
 ### End multiplot
 
-pause 2
+pause 10
 reread

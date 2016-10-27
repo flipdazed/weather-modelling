@@ -44,7 +44,7 @@ n_out       = 2
 ## training parameters
 n_epochs        = 10000
 batch_size      = 10
-learning_rate   = 0.02
+learning_rate   = 0.1
 l1_reg          = 0.00
 L2_reg          = 0.00
 
@@ -54,7 +54,7 @@ patience_increase       = 2     # wait this much longer if new best is found
 improvement_threshold   = 0.995 # consider this improvement significant
 
 # sample for plotting
-freq = 100
+freq = 1
 
 if __name__ == "__main__":
     
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     logger.debug('building training model')
     train_model = theano.function(
         inputs=[index],
-        outputs=cost,
+        outputs=[cost] + [g.mean() for g in gparams],
         updates=updates,
         givens={
             x: train_set_x[index * batch_size: (index + 1) * batch_size],
@@ -154,15 +154,14 @@ if __name__ == "__main__":
     
     visualise_weights = {       # dict of images to create
         'inputLayer' + '_weights': {    # input - hiddenlayer image
-            'x':classifier.hiddenLayer.w.get_value(
-                borrow=True).T,         # the parameter
+            'x':classifier.hiddenLayer.w,         # the parameter
             'img_shape':(29*2, 29*2*3), # prod. of tuple == # input nodes
             'tile_shape':(40, 32),      # Max number is # nodes in next layer
             'tile_spacing':(1, 1),      # separate imgs x,y
             'runtime_plots':True
         },
         'logitLayer' + '_weights': {    # hidden - logistic layer
-            'x':classifier.logitLayer.w.get_value(borrow=True).T,
+            'x':classifier.logitLayer.w,
             'img_shape':(100, 100),     # prod. of tuple == # hidden nodes
             'tile_shape':(1, 2),
             'tile_spacing':(1, 1)
@@ -177,19 +176,34 @@ if __name__ == "__main__":
     visualise_params = {
         'hiddenLayer' + '_weights': {
             'freq':freq,
-            'x':classifier.hiddenLayer.w.get_value(borrow=True).ravel()
+            'x':classifier.hiddenLayer.w
         },
         'hiddenLayer' + '_bias': {
             'freq':freq,
-            'x': classifier.hiddenLayer.b.get_value(borrow=True).ravel()
+            'x': classifier.hiddenLayer.b
         },
         'logitLayer' + '_weights': {
             'freq':freq,
-            'x': classifier.logitLayer.w.get_value(borrow=True).ravel()
+            'x': classifier.logitLayer.w
         },
         'logitLayer' + '_bias': {
             'freq':freq,
-            'x':classifier.logitLayer.b.get_value(borrow=True).ravel()
+            'x':classifier.logitLayer.b
+        }
+    }
+    
+    visualise_updates = {
+        'hiddenLayer' + '_weights': {
+            'update_position':0
+        },
+        'hiddenLayer' + '_bias': {
+            'update_position':1
+        },
+        'logitLayer' + '_weights': {
+            'update_position':2
+        },
+        'logitLayer' + '_bias': {
+            'update_position':3
         }
     }
     
@@ -202,7 +216,8 @@ if __name__ == "__main__":
         default_freq = min(n_train_batches, patience // 2),
         params = visualise_params,
         cost = visualise_cost,
-        imgs = visualise_weights
+        imgs = visualise_weights,
+        updates = visualise_updates
         )
     
     utils.training.train(classifier, train_model, validate_model, test_model,
