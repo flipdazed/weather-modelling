@@ -33,12 +33,12 @@ os.system('rm {}_*'.format(os.path.join(DATA_DIR, '', MODEL_ID)))
 
 # network parameters
 n_ins               = 10092
-hidden_layer_sizes  = [1000, 1000, 1000]
+hidden_layer_sizes  = [5000, 2500, 1000]
 n_outs              = 2
 
 # pre-training
-k                   = 1     # number of Gibbs steps in CD/PCD
-pretraining_epochs  = 200
+k                   = 15     # number of Gibbs steps in CD/PCD
+pretraining_epochs  = 50
 pretrain_lr         = 0.01
 
 # training (fine-tuning)
@@ -50,8 +50,8 @@ batch_size          = 10
 patience                = 20000 # look as this many examples regardless
 patience_increase       = 2     # wait this much longer if new best found
 improvement_threshold   = 0.995 # consider this improvement significant
-pretrain_vis_freq = 10
-finetrain_vis_freq = 10
+pretrain_vis_freq = 1
+finetrain_vis_freq = False
 
 if __name__ == '__main__':
     
@@ -87,6 +87,9 @@ if __name__ == '__main__':
                                                 batch_size=batch_size,
                                                 k=k)
     
+    # visualise arbitrary parameters at runtime
+    visualise_params = {}
+    
     # visualise cost during runtime
     visualise_cost = {          # visualising the cost
         'cost':{'freq':pretrain_vis_freq}       # frequency of sampling
@@ -99,12 +102,10 @@ if __name__ == '__main__':
             'img_shape':(29*2, 29*2*3),
             'tile_shape':(25, 40),
             'tile_spacing':(1, 1),
+            'freq':pretrain_vis_freq,
             'runtime_plots':True
         }
     }
-    
-    # visualise arbitrary parameters at runtime
-    visualise_params = {}
     
     param_man = utils.visualise.Visualise_Runtime(
         plot_dir=PLOT_DIR,
@@ -113,7 +114,7 @@ if __name__ == '__main__':
     param_man.initalise(
         run_id = MODEL_ID,
         imgs = visualise_weights,
-        default_freq = patience,
+        default_freq = n_train_batches//2,
         cost = visualise_cost
         )
     
@@ -134,13 +135,19 @@ if __name__ == '__main__':
             logger.debug('Pre-training layer: {}'.format(l))
             time_pretrain_start = timeit.default_timer()
             
+            # this particular section pull parameters from the RBM
+            # as the RBM is used for pretraining the Hidden Layers
             new_params = {
-                'hiddenLayer{:02d}'.format(l) + '_weights': {
-                    'x': dbn.sigmoid_layers[l].w,
+                'hiddenLayerRBM{:02d}'.format(l) + '_weights': {
+                    'x': dbn.rbm_layers[l].w,
                     'freq':pretrain_vis_freq,
                 },
-                'hiddenLayer{:02d}'.format(l) + '_bias': {
-                    'x': dbn.sigmoid_layers[l].b,
+                'hiddenLayerRBM{:02d}'.format(l) + '_hbias': {
+                    'x': dbn.rbm_layers[l].hbias,
+                    'freq':pretrain_vis_freq,
+                },
+                'hiddenLayerRBM{:02d}'.format(l) + '_vbias': {
+                    'x': dbn.rbm_layers[l].vbias,
                     'freq':pretrain_vis_freq,
                 }
             }
@@ -148,21 +155,26 @@ if __name__ == '__main__':
             # the update_position is fixed because we delete 
             # the current dict at end of loop
             visualise_updates = {
-                'hiddenLayer{:02d}'.format(l) + '_weights': {
+                'hiddenLayerRBM{:02d}'.format(l) + '_weights': {
                     'update_position':0,
                     'freq':pretrain_vis_freq
                 },
-                'hiddenLayer{:02d}'.format(l) + '_bias': {
+                'hiddenLayerRBM{:02d}'.format(l) + '_hbias': {
                     'update_position':1,
+                    'freq':pretrain_vis_freq
+                },
+                'hiddenLayerRBM{:02d}'.format(l) + '_vbias': {
+                    'update_position':2,
                     'freq':pretrain_vis_freq
                 }
             }
             
             param_man.initalise(
                 run_id = MODEL_ID,
-                default_freq = patience,
+                default_freq = n_train_batches//2,
                 params = new_params,
-                updates = visualise_updates
+                updates = visualise_updates,
+                cost = visualise_cost
                 )
             
             # go through pretraining epochs 0th epoch is before start
@@ -213,10 +225,13 @@ if __name__ == '__main__':
         
         if param_man.imgs: # only want images from first layer
             param_man.imgs = {}
-        del param_man.params['hiddenLayer{:02d}'.format(l) + '_weights']
-        del param_man.params['hiddenLayer{:02d}'.format(l) + '_bias']
-        del param_man.updates['hiddenLayer{:02d}'.format(l) + '_weights']
-        del param_man.updates['hiddenLayer{:02d}'.format(l) + '_bias']
+        del param_man.cost['cost']
+        del param_man.params['hiddenLayerRBM{:02d}'.format(l) + '_weights']
+        del param_man.params['hiddenLayerRBM{:02d}'.format(l) + '_hbias']
+        del param_man.params['hiddenLayerRBM{:02d}'.format(l) + '_vbias']
+        del param_man.updates['hiddenLayerRBM{:02d}'.format(l) + '_weights']
+        del param_man.updates['hiddenLayerRBM{:02d}'.format(l) + '_hbias']
+        del param_man.updates['hiddenLayerRBM{:02d}'.format(l) + '_vbias']
     
     end_time = timeit.default_timer()
     logger.info('The pretraining code for file '
@@ -276,12 +291,14 @@ if __name__ == '__main__':
             'img_shape':(29*2, 29*2*3), # prod. of tuple == # input nodes
             'tile_shape':(25, 40),    # Max number is # nodes in next layer
             'tile_spacing':(1, 1),      # separate imgs x,y
+            'freq':finetrain_vis_freq,
             'runtime_plots':True
         },
         'logitLayer' + '_weights': {    # hidden - logistic layer
             'x':dbn.logitLayer.w,
             'img_shape':(40, 25),     # prod. of tuple == # hidden nodes
             'tile_shape':(1, 2),
+            'freq':finetrain_vis_freq
         }
     }
     # add the weights for each hidden layer
@@ -291,11 +308,12 @@ if __name__ == '__main__':
             'x':dbn.sigmoid_layers[i].w,
             'img_shape':(40, 25),
             'tile_shape':(25, 25),
+            'freq':finetrain_vis_freq
         }
     
     param_man.initalise(
         run_id = MODEL_ID,
-        default_freq = patience,
+        default_freq = n_train_batches//2,
         params = new_params,
         imgs = visualise_weights,
         cost = visualise_cost,

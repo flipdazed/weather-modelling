@@ -103,6 +103,8 @@ class Visualise_Runtime(object):
                     # default to the validation freq
                     if 'freq' not in attr_settings:
                         attr[n]['settings']['freq'] = default_freq
+                    elif not attr_settings['freq']: # allows False / None
+                        attr[n]['settings']['freq'] = default_freq
                     
                     attr[n]['data'] = []
                     attr[n]['settings']['save_path'] = os.path.join(

@@ -36,17 +36,17 @@ ys = yf-yi
 
 # --- GRAPH cost
 unset key
-set title "cost vs. training samples" font ",10"
+set title "cost vs. training samples" font ",8"
 f = word(cost_files, 1)
 set size (xn/2)*(xs/xn)/x,ys/(yn/2)/y
 set origin xi/x,(yi+ys/(yn/2))/y
-set xlabel "sample" font ",7"
-set ylabel "value" font ",7"
+set xlabel "sample" font ",8"
+set ylabel "value" font ",8"
 plot f u (column(0)):1 w l ls 1 lc rgb"blue"
 
 # --- GRAPH input image
 unset key
-set title "input weights" font ",10"
+set title "input weights" font ",8"
 f = word(weight_file, 1)
 set size (xn/2)*(xs/xn)/x,ys/(yn/2)/y
 set origin (xi+(xn/2)*(xs/xn))/x,(yi+ys/(yn/2))/y
@@ -69,8 +69,8 @@ do for [i=1:words(params_files)] {
     set title p." vs. training samples" font ",6"
     set size (xs/xn)/x,(ys/yn)/y
     set origin (xi+(i-1)*(xs/xn))/x,(yi+ys/yn)/y
-    set xlabel "sample" font ",7"
-    set ylabel "mean value" font ",7"
+    set xlabel "sample" font ",8"
+    set ylabel "mean value" font ",8"
     plot f u (column(0)):1 with lines ls 1
 }
 
@@ -95,8 +95,8 @@ do for [i=1:words(params_files)] {
     # set boxwidth width*0.9
     # set style fill solid 0.5
     set tics
-    set xlabel "mean value" font ",7"
-    set ylabel "freq" font ",7"
+    set xlabel "mean value" font ",8"
+    set ylabel "freq" font ",8"
     plot f u (hist($1,width)):(1.0/STATS_records) \
         smooth freq \
         w l \

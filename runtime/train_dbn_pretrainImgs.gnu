@@ -5,7 +5,7 @@
 ### Example code
 # for i in {0..700};
 #     do echo "gnuplot -e run_id='train_dbn';i='$(printf "%03d" $i)'\
-#     runtime/train_dbn_finetrainImgs.gnu";
+#     runtime/train_dbn_pretrainImgs.gnu";
 #     sleep 5;
 # done
 ###
@@ -19,7 +19,6 @@ ext = ".dat"
 cost_files = system("ls ".base_loc."cost_"."*".ext)
 params_files = system("ls ".base_loc."params_"."*".ext)
 updates_files = system("ls ".base_loc."updates_"."*".ext)
-weight_file = system("ls ".plot_loc."*weights"."*".ext)
 
 # get the string names to label the plots from the filenames using REGEX
 params_names = system("ls ".base_loc."params_"."*".ext." | sed -e 's#".base_loc."params_"."\\(.*\\)\\".ext."#\\1#' -e 's#_# #g'")
@@ -35,8 +34,8 @@ hw=3
 n=25
 
 # this is the number of paramters (width of the plot)
-# number of dbn layers * 2 (w,b) params per layer at finetrainining
-xn=8
+# number of dbn layers * 3 rbm params + 2 logit params
+xn=3*3+2
 
 # this is the height of the plot i.e. 
 # + 2 for the cost
@@ -65,33 +64,17 @@ ys = yf-yi
 ### Start multiplot
 set encoding utf8
 set terminal png size 1440,800 enhanced font 'Verdana,6'
-set output plot_loc."finetrainImgs_".iter.".png"
+set output plot_loc."pretrainImgs_".iter.".png"
 
 set multiplot
 set autoscale x
-
-# --- GRAPH input image
-unset key
-unset key
-unset colorbox
-unset tics
-unset xlabel
-unset ylabel
-set size (xs/2.)/x,2*ys/yn/y
-set origin (xi+(xs/2.))/x,(yi+3*ys/yn)/y
-set border linewidth 0
-set palette grey
-
-f = word(weight_file, 1)
-set title "input weights" font ",8"
-plot f matrix w image
 
 # --- GRAPH cost
 unset key
 set tics
 f = word(cost_files, 1)
 
-set size (xs/2.)/x,2*ys/yn/y
+set size xs/x,2*ys/yn/y
 set origin xi/x,(yi+3*ys/yn)/y
 
 set title "<cost> vs. training samples" font ",8"

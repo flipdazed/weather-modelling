@@ -54,7 +54,7 @@ set autoscale x
 
 # --- GRAPH input image
 unset key
-set title "input weights" font ",10"
+set title "input weights" font ",8"
 f = word(weight_file, 1)
 set size (xn/2.)*(xs/xn)/x,2*ys/yn/y
 set origin (xi+(xn/2.)*(xs/xn))/x,(yi+3*ys/yn)/y
@@ -75,9 +75,9 @@ f = word(cost_files, 1)
 set size xs/2./x,2*ys/yn/y
 set origin xi/x,(yi+3*ys/yn)/y
 
-set title "<cost> vs. training samples" font ",10"
-set xlabel "sample" font ",7"
-set ylabel "<Cost>" font ",7"
+set title "<cost> vs. training samples" font ",8"
+set xlabel "sample" font ",8"
+set ylabel "<Cost>" font ",8"
 plot f u (column(0)):1 w l ls 1 lc rgb"blue"
 
 set xtics rotate by -45
@@ -91,9 +91,9 @@ do for [i=1:words(params_files)] {
     set origin (xi+(i-1)*(xs/xn))/x,(yi+2*ys/yn)/y
     set tics
     
-    set title p.", <X_".i.">" font ",10"
-    set xlabel "sample" font ",7"
-    set ylabel "<X_".i.">" font ",7"
+    set title p.", <X_".i.">" font ",8"
+    set xlabel "sample" font ",8"
+    set ylabel "<X_".i.">" font ",8"
     plot f u (column(0)):1 with lines ls 1
 }
 
@@ -118,9 +118,9 @@ do for [i=1:words(params_files)] {
         set style fill solid noborder
         set boxwidth width*0.9
         
-        set title "Freq. of <X_".i.">" font ",10"
-        set xlabel "<X_".i.">" font ",7"
-        set ylabel "freq" font ",7"
+        set title "Freq. of <X_".i.">" font ",8"
+        set xlabel "<X_".i.">" font ",8"
+        set ylabel "freq" font ",8"
         
         plot f u (hist($1,width)):(1.0/STATS_records) \
             smooth freq w boxes lc rgb"green" notitle
@@ -151,9 +151,9 @@ do for [i=1:words(updates_files)] {
         set style fill solid noborder
         set boxwidth width*0.9
         
-        set title "Freq. of <-{/Symbol D}X_".i.">" font ",10"
-        set xlabel "<X_".i.">" font ",7"
-        set ylabel "freq" font ",7"
+        set title "Freq. of <-{/Symbol D}X_".i.">" font ",8"
+        set xlabel "<X_".i.">" font ",8"
+        set ylabel "freq" font ",8"
         plot f u (hist($1,width)):(1.0/STATS_records) \
             smooth freq w boxes lc rgb"red" notitle
     } else {

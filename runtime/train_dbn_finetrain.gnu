@@ -1,5 +1,8 @@
 ### Expected arguments
 
+# rate at which graph replots
+reset_rate = 5
+
 ### files
 base_loc = "dump/data/".run_id."_"
 plot_loc = "dump/plots/".run_id."_"
@@ -18,8 +21,14 @@ updates_names = system("ls ".base_loc."params_"."*".ext." | sed -e 's#".base_loc
 #function used to map a value to the intervals
 hist(x,width)=width*floor(x/width)+width/2.0
 
+## number of standard deviations to show in histogram
+hw=3
+
+## number of boxes in histogram
+n=25
 
 # this is the number of paramters (width of the plot)
+# number of dbn layers * 2 (w,b) params per layer at finetrainining
 xn=8
 
 # this is the height of the plot i.e. 
@@ -47,8 +56,7 @@ yf = y-o
 ys = yf-yi
 
 ### Start multiplot
-set terminal qt noraise size 1440,800 font 'Verdana,6'
-
+set terminal qt size 1280,800 font 'Verdana,6' noraise
 set multiplot
 set autoscale x
 
@@ -59,13 +67,13 @@ unset colorbox
 unset tics
 unset xlabel
 unset ylabel
-set size (xn/2)*(xs/xn)/x,2*ys/yn/y
-set origin (xi+(xn/2)*(xs/xn))/x,(yi+3*ys/yn)/y
+set size (xs/2.)/x,2*ys/yn/y
+set origin (xi+(xs/2.))/x,(yi+3*ys/yn)/y
 set border linewidth 0
 set palette grey
 
 f = word(weight_file, 1)
-set title "input weights" font ",10"
+set title "input weights" font ",8"
 plot f matrix w image
 
 # --- GRAPH cost
@@ -73,12 +81,12 @@ unset key
 set tics
 f = word(cost_files, 1)
 
-set size xs/2./x,2*ys/yn/y
+set size (xs/2.)/x,2*ys/yn/y
 set origin xi/x,(yi+3*ys/yn)/y
 
-set title "<cost> vs. training samples" font ",10"
-set xlabel "sample" font ",7"
-set ylabel "<Cost>" font ",7"
+set title "<cost> vs. training samples" font ",8"
+set xlabel "sample" font ",8"
+set ylabel "<Cost>" font ",8"
 plot f u (column(0)):1 w l ls 1 lc rgb"blue"
 
 set xtics rotate by -45
@@ -92,9 +100,9 @@ do for [i=1:words(params_files)] {
     set origin (xi+(i-1)*(xs/xn))/x,(yi+2*ys/yn)/y
     set tics
     
-    set title p.", <X_".i.">" font ",10"
-    set xlabel "sample" font ",7"
-    set ylabel "<X_".i.">" font ",7"
+    set title p.", <X_".i.">" font ",8"
+    set xlabel "sample" font ",8"
+    set ylabel "<X_".i.">" font ",8"
     plot f u (column(0)):1 with lines ls 1
 }
 
@@ -104,66 +112,72 @@ do for [i=1:words(params_files)] {
     p = word(params_names,i*2-1)." ".word(params_names,i*2)
     f = word(params_files, i)
     
-    stats f using 1 nooutput
-    if (STATS_min != STATS_max){
-        set tics
-        set size (xs/xn)/x,(ys/yn)/y
-        set origin (xi+(i-1)*(xs/xn))/x,(yi+1*ys/yn)/y
-        
-        n=50 #number of intervals
-        max=STATS_mean+3*STATS_stddev #max value
-        min=STATS_mean-3*STATS_stddev #min value
-        width=(max-min)/n #interval width
-        set xrange [min:max]
-        
-        set style fill solid noborder
-        set boxwidth width*0.9
-        
-        set title "Freq. of <X_".i.">" font ",10"
-        set xlabel "<X_".i.">" font ",7"
-        set ylabel "freq" font ",7"
-        
-        plot f u (hist($1,width)):(1.0/STATS_records) \
-            smooth freq w boxes lc rgb"green" notitle
+    if (f ne ""){
+        stats f using 1 nooutput
+        if (STATS_min != STATS_max){
+            set tics
+            set size (xs/xn)/x,(ys/yn)/y
+            set origin (xi+(i-1)*(xs/xn))/x,(yi+1*ys/yn)/y
+            
+            max=STATS_mean+hw*STATS_stddev #max value
+            min=STATS_mean-hw*STATS_stddev #min value
+            width=(max-min)/n #interval width
+            set xrange [min:max]
+            
+            set style fill solid noborder
+            set boxwidth width*0.9
+            
+            set title "Freq. of <X_".i.">" font ",8"
+            set xlabel "<X_".i.">" font ",8"
+            set ylabel "freq" font ",8"
+            
+            plot f u (hist($1,width)):(1.0/STATS_records) \
+                smooth freq w boxes lc rgb"green" notitle
+        } else {
+            print "Update Hist: ".p.": cannot plot... all equal to: ",\
+                STATS_min
+        }
     } else {
-        print "Values Hist: ".p.": cannot plot... all equal to: ",STATS_min
+        print "file being updated..."
     }
 }
-
 # --- GRAPH histogram of learning updates
 do for [i=1:words(updates_files)] {
     unset key
     p = word(updates_names,i*2-1)." ".word(updates_names,i*2)
     f = word(updates_files, i)
     
-    stats f using 1 nooutput
-    if (STATS_min != STATS_max){
-        
-        set tics
-        set size (xs/xn)/x,(ys/yn)/y
-        set origin (xi+(i-1)*(xs/xn))/x,(yi+0*ys/yn)/y
-        
-        n=50 #number of intervals
-        max=STATS_mean+3*STATS_stddev #max value
-        min=STATS_mean-3*STATS_stddev #min value
-        width=(max-min)/n #interval width
-        set xrange [min:max]
-        
-        set style fill solid noborder
-        set boxwidth width*0.9
-        
-        set title "Freq. of <-{/Symbol D}X_".i.">" font ",10"
-        set xlabel "<X_".i.">" font ",7"
-        set ylabel "freq" font ",7"
-        plot f u (hist($1,width)):(1.0/STATS_records) \
-            smooth freq w boxes lc rgb"red" notitle
+    if (f ne ""){
+        stats f using 1 nooutput
+        if (STATS_min != STATS_max){
+            set tics
+            set size (xs/xn)/x,(ys/yn)/y
+            set origin (xi+(i-1)*(xs/xn))/x,(yi+0*ys/yn)/y
+            
+            max=STATS_mean+hw*STATS_stddev #max value
+            min=STATS_mean-hw*STATS_stddev #min value
+            width=(max-min)/n #interval width
+            set xrange [min:max]
+            
+            set style fill solid noborder
+            set boxwidth width*0.9
+            
+            set title "Freq. of <-{/Symbol D}X_".i.">" font ",8"
+            set xlabel "<X_".i.">" font ",8"
+            set ylabel "freq" font ",8"
+            plot f u (hist($1,width)):(1.0/STATS_records) \
+                smooth freq w boxes lc rgb"red" notitle
+        } else {
+            print "Update Hist: ".p.": cannot plot... all equal to: ",\
+                STATS_min
+        }
     } else {
-        print "Update Hist: ".p.": cannot plot... all equal to: ",STATS_min
+        print "file being updated..."
     }
 }
 
 unset multiplot
 ### End multiplot
 
-pause 10
+pause reset_rate
 reread
