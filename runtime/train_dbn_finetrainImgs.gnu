@@ -172,7 +172,7 @@ do for [i=1:words(updates_files)] {
             set style fill solid noborder
             set boxwidth width*0.9
             
-            set title "Freq. of <-{/Symbol D}X_".i.">" font ",8"
+            set title "Freq. of <-∆X_".i.">" font ",8"
             set xlabel "<X_".i.">" font ",8"
             set ylabel "freq" font ",8"
             plot f u (hist($1,width)):(1.0/STATS_records) \

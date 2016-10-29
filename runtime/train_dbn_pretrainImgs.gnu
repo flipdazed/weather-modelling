@@ -2,13 +2,15 @@
 ## i=[int]
 ## run_id=[str]
 
-### Example code
+## Example code
 # for i in {0..700};
-#     do echo "gnuplot -e run_id='train_dbn';i='$(printf "%03d" $i)'\
+#     do echo "gnuplot -e ""run_id='train_dbn';iter='$(printf "%03d" $i)'""\
 #     runtime/train_dbn_pretrainImgs.gnu";
+#     gnuplot -e "run_id='train_dbn';iter='$(printf "%03d" $i)'"\
+#     runtime/train_dbn_pretrainImgs.gnu;
 #     sleep 5;
 # done
-###
+##
 
 ### files
 base_loc = "dump/data/".run_id."_"
@@ -155,7 +157,7 @@ do for [i=1:words(updates_files)] {
             set style fill solid noborder
             set boxwidth width*0.9
             
-            set title "Freq. of <-{/Symbol D}X_".i.">" font ",8"
+            set title "Freq. of <-∆X_".i.">" font ",8"
             set xlabel "<X_".i.">" font ",8"
             set ylabel "freq" font ",8"
             plot f u (hist($1,width)):(1.0/STATS_records) \
