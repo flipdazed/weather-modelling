@@ -132,7 +132,7 @@ def train(classifier,
                     # accomodates return of gparams in result
                     minibatch_avg_cost = result.pop(0)
                     minibatch_avg_costs.append(minibatch_avg_cost)
-                    updates = [(g*learning_rate).mean() for g in result]
+                    updates = [T.mean(g*learning_rate) for g in result]
                 else:
                     # no gparams in result
                     minibatch_avg_cost = result
@@ -155,7 +155,8 @@ def train(classifier,
                             'Valid Time {:.2f} mins'.format(
                                 epoch, minibatch_index + 1, n_train_batches,
                                 this_validation_loss * 100.,
-                                np.asscalar(minibatch_avg_cost),
+                                np.asscalar(minibatch_avg_cost, 
+                                    dtype=theano.config.floatx),
                                 train_time_i/60.
                             )
                         )
@@ -176,7 +177,7 @@ def train(classifier,
                                     test_model(j)
                                     for j in range(n_test_batches)
                                 ]
-                                test_score = np.mean(test_losses)
+                                test_score = T.mean(test_losses)
                                 test_end_i = timeit.default_timer()
                                 test_time_i = test_end_i - epoch_start_i
                                 logger.info('Epoch {:3d}, Batch     '
@@ -192,7 +193,7 @@ def train(classifier,
                 if param_man:
                     param_man.getValues(
                         i = i,
-                        cost = np.mean(minibatch_avg_costs),
+                        cost = T.mean(minibatch_avg_costs),
                         updates = updates
                     )
                     param_man.writeRuntimeValues(i=i)

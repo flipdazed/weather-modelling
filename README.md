@@ -13,6 +13,13 @@ This repository contains some of the code used for a research project at Aucklan
  - [Structure](#structure)
  - [Configuration](#config)
 
+<a name="reqs"/>
+# Requirements
+The requirements are just a few python packages that can be installed with `pip`
+
+    pip install dill configParser
+if unable to sudo, add the flag `--user` to install locally
+
 <a name="running"/>
 # Running Code
 Code should always be run from the root directory for example

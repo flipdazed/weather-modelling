@@ -2,13 +2,13 @@
 ## i=[int]
 ## run_id=[str]
 
-### Example code
+## Example code
 # for i in {0..700};
-#     do echo "gnuplot -e run_id='train_dbn';i='$(printf "%03d" $i)'\
-#     runtime/train_dbn_finetrainImgs.gnu";
+#     gnuplot -e "run_id='train_dbn';iter='$(printf "%03d" $i)'"\
+#     runtime/train_dbn_finetrainImgs.gnu;
 #     sleep 5;
 # done
-###
+##
 
 ### files
 base_loc = "dump/data/".run_id."_"

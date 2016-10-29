@@ -1,4 +1,5 @@
 from sys import platform
+
 if platform == "linux" or platform == "linux2":
     # linux
     pass
@@ -8,7 +9,8 @@ elif platform == "darwin":
 elif platform == "win32":
     # Windows...
     pass
-import os, timeit
+
+import os, timeit, traceback
 import numpy as np
 
 import data
@@ -47,7 +49,7 @@ n_outs              = 2
 
 # pre-training
 k                   = 15     # number of Gibbs steps in CD/PCD
-pretraining_epochs  = 50
+pretraining_epochs  = 100
 pretrain_lr         = 0.01
 
 # training (fine-tuning)
@@ -59,7 +61,7 @@ batch_size          = 10
 patience                = 20000 # look as this many examples regardless
 patience_increase       = 2     # wait this much longer if new best found
 improvement_threshold   = 0.995 # consider this improvement significant
-pretrain_vis_freq = 1
+pretrain_vis_freq = False
 finetrain_vis_freq = False
 
 if __name__ == '__main__':
@@ -142,7 +144,7 @@ if __name__ == '__main__':
         # without losing everything!
         try: # control+c doesn't loose everything!
             logger.debug('Pre-training layer: {}'.format(l))
-            time_pretrain_start = timeit.default_timer()
+            layer_start = timeit.default_timer()
             
             # this particular section pull parameters from the RBM
             # as the RBM is used for pretraining the Hidden Layers
@@ -188,7 +190,7 @@ if __name__ == '__main__':
             
             # go through pretraining epochs 0th epoch is before start
             for epoch in range(1, pretraining_epochs+1):
-                
+                epoch_start = timeit.default_timer()
                 # go through the training set
                 costs = []
                 for minibatch_index in range(n_train_batches):
@@ -218,10 +220,10 @@ if __name__ == '__main__':
                     param_man.writeRuntimeValues(i = i)
                 
                 av_cost = np.mean(costs)
-                time_pretrain_end_i = timeit.default_timer()
-                time_pretrain_i = time_pretrain_end_i - time_pretrain_start
+                epoch_end = timeit.default_timer()
+                epoch_time = epoch_end - epoch_start
                 logger.debug('Pre-training layer: {}, epoch {}, cost {},'
-                    ' time {}s'.format(l, epoch, av_cost, time_pretrain_i))
+                    ' time {}s'.format(l, epoch, av_cost, epoch_time))
             
         # these sections handle errors nicely
         except KeyboardInterrupt:
@@ -231,6 +233,11 @@ if __name__ == '__main__':
             logger.error('Unplanned Exit!')
             for line in traceback.format_exc().split("\n"):
                 logger.error(line)
+        
+        layer_end = timeit.default_timer()
+        layer_time = layer_end - layer_start
+        logger.info('done pre-training layer: {}. Time: {} mins'.format(
+            l, layer_time/60.))
         
         if param_man.imgs: # only want images from first layer
             param_man.imgs = {}
