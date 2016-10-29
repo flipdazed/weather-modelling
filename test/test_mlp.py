@@ -3,7 +3,16 @@ import os, sys
 import numpy as np
 import theano
 import theano.tensor as T
-import caffeine
+from sys import platform
+if platform == "linux" or platform == "linux2":
+    # linux
+    pass
+elif platform == "darwin":
+    # OS X
+    import caffeine
+elif platform == "win32":
+    # Windows...
+    pass
 
 import data
 import utils
