@@ -1,5 +1,5 @@
 Deep Networks for Prediction of Weather Events
-===
+===============================================
 
 **Status** : under development
 
@@ -14,14 +14,18 @@ This repository contains some of the code used for a research project at Aucklan
  - [Configuration](#config)
 
 <a name="reqs"/>
+
 # Requirements
+
 The requirements are just a few python packages that can be installed with `pip`
 
     pip install dill configParser
 if unable to sudo, add the flag `--user` to install locally
 
 <a name="running"/>
+
 # Running Code
+
 Code should always be run from the root directory for example
 
     ipython test/test_mlp.py
@@ -31,13 +35,17 @@ Code should always be run from the root directory for example
 running with `python` may not pick up the directory structure correctly on some distributions like `Ubuntu` but `ipython` works across the board. 
 
 <a name="running-logs"/>
+
 ## Run Logs
+
 Logs are stored by overwriting the default file `runlog.log` which will contain `OS X` terminal colour codes to highlight different information levels. The log should therefore be opened in the terminal though a command such as `cat`
 
 ![](/../screenshots/screenshots/log_screenshot.png "a runlog.log example")
 
 <a name="running-sleeping"/>
+
 ## Avoiding System Sleeping
+
 All scripts contain [`import caffeine`](https://pypi.python.org/pypi/caffeine/0.2) which prevents the system from going into sleep during runtime.
 
 <a name="visualising">
@@ -49,6 +57,7 @@ An example is shown below.
 ![](/../screenshots/screenshots/visualise_params.gif)
 
 <a name="structure"/>
+
 # Structure
 
  - `train_[MODEL].py` : trains `MODEL` on the weather data
@@ -62,6 +71,7 @@ An example is shown below.
  - `config.ini` : configuration file described below
 
 <a name="configuration"/>
+
 # Configuration
 
 A `config.ini` file is required in the root directory that will be structured in standard `.ini` format as
