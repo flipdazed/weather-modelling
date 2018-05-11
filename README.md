@@ -49,7 +49,9 @@ Logs are stored by overwriting the default file `runlog.log` which will contain 
 All scripts contain [`import caffeine`](https://pypi.python.org/pypi/caffeine/0.2) which prevents the system from going into sleep during runtime.
 
 <a name="visualising">
+ 
 # Visualising Parameters
+ 
 Several scripts are provided for visualising parameters at runtime.
 See [`runtime`](https://github.com/flipdazed/weather-modelling/tree/master/runtime) for more details.
 An example is shown below.
